@@ -1,0 +1,38 @@
+<!DOCTYPE Linker_Placement_File>
+<Root name="Flash Section Placement">
+  <MemorySegment name="FLASH1" start="0x00000000" size="0x1000">
+    <ProgramSection load="Yes" name=".vectors" start="" />
+    <ProgramSection alignment="4" load="Yes" name=".init" />
+    <ProgramSection alignment="4" load="Yes" name=".init_rodata" />
+    <ProgramSection alignment="4" load="Yes" name=".text" />
+    <ProgramSection alignment="4" load="Yes" name=".dtors" />
+    <ProgramSection alignment="4" load="Yes" name=".ctors" />
+    <ProgramSection alignment="4" load="Yes" name=".rodata" />
+    <ProgramSection alignment="4" load="Yes" name=".srodata" />
+    <ProgramSection alignment="4" load="Yes" name=".eh_frame" keep="Yes" />
+    <ProgramSection alignment="4" load="Yes" name=".gcc_except_table" />
+    <ProgramSection alignment="4" load="Yes" runin=".data_run" name=".data" />
+    <ProgramSection alignment="4" load="Yes" runin=".tdata_run" name=".tdata" />
+    <ProgramSection alignment="4" load="Yes" runin=".sdata_run" name=".sdata" inputsections="*(.sdata.* .sdata2.*)" />
+  </MemorySegment>
+  <MemorySegment name="RAM1" start="0x00001000" size="0x1000">
+    <ProgramSection alignment="4" load="No" name=".data_run" />
+    <ProgramSection alignment="4" load="No" name=".tdata_run" />
+    <ProgramSection alignment="4" load="No" name=".bss" />
+    <ProgramSection alignment="4" load="No" name=".tbss" />
+    <ProgramSection alignment="4" load="No" name=".sdata_run" />
+    <ProgramSection alignment="4" load="No" name=".sbss" />
+    <ProgramSection alignment="4" load="No" name=".non_init" />
+    <ProgramSection alignment="4" size="__HEAPSIZE__" load="No" name=".heap" />
+    <ProgramSection alignment="4" size="__STACKSIZE__" load="No" place_from_segment_end="Yes" name=".stack" />
+  </MemorySegment>
+  <MemorySegment name="IOmem" start="0x10000" size="0x4">
+    <ProgramSection alignment="4" keep="Yes" load="No" name=".io" inputsections="*(SORT(.io*))" address_symbol="__start_io" end_symbol="__stop_io" />
+  </MemorySegment>
+  <MemorySegment name="UARTio" start="0x10004" size="0x8">
+    <ProgramSection alignment="4" keep="Yes" load="No" name=".ioUART" inputsections="*(SORT(.ioUART*))" address_symbol="__start_ioUART" end_symbol="__stop_ioUART" />
+  </MemorySegment>
+  <MemorySegment name="UARTmem" start="0x20000" size="0x20000">
+    <ProgramSection alignment="4" keep="Yes" load="No" name=".memUART" inputsections="*(SORT(.memUART*))" address_symbol="__start_memUART" end_symbol="__stop_memUART" />
+  </MemorySegment>
+</Root>
