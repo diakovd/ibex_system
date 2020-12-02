@@ -18,6 +18,8 @@ I made some bug fix when testing IBEX core, so for this project take IBEX core f
 - UART bootLoader for fast update program to RAM memory
 - IO module - 32 bit out register 
  
+ ![Alt text](https://github.com/diakovd/ibex_system/blob/main/sys.jpg?raw=true "Title")
+ 
 ## Pinout
 	TX, RX - UART line
 	Clk_14_7456MHz - clock 14.7456MHz for URAT module 
