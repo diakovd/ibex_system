@@ -26,11 +26,11 @@ I made some bug fix when testing IBEX core, so for this project take IBEX core f
 	LED - 32 bit IO module out
 	
 ## Folders
-source - IBEX system(ibex_sys.sv) and perepherial modules  
-ms - contane .tcl scripts for modelsim simulation
-qua_pr - EP4CE10E22C8 FPGA board wrapper (ibex_sys_cycloneIV.sv), also contane EP4CE10E22C8 specific RAM, FIFO and PLL
-VIVpr  - xc7a15t FPGA board wrapper (ibex_sys_atrix7.sv), also contane xc7a15t specific RAM, FIFO and PLL
-sw - hello word project for Segger Embeded Studio for RISC-V. This project wait interrupt from Timer and on interrupt send hello word through UART
+- source - IBEX system(ibex_sys.sv) and perepherial modules  
+- ms - contane .tcl scripts for modelsim simulation
+- qua_pr - EP4CE10E22C8 FPGA board wrapper (ibex_sys_cycloneIV.sv), also contane EP4CE10E22C8 specific RAM, FIFO and PLL
+- VIVpr  - xc7a15t FPGA board wrapper (ibex_sys_atrix7.sv), also contane xc7a15t specific RAM, FIFO and PLL
+- sw - hello word project for Segger Embeded Studio for RISC-V. This project wait interrupt from Timer and on interrupt send hello word through UART
 
 ## Bus description
 IBEX core have instruction and data bus. Instruction bus conneted directly to RAM memory what contane program code, after start IBEX read instruction through this intrface.
