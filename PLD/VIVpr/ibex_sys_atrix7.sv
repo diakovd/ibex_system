@@ -12,7 +12,7 @@
     input   Clk_14_7456MHz,
     input   sys_rst_n	 
  );
- parameter string VENDOR = "Xilinx"; //optional "Simulation"
+ parameter VENDOR = "Xilinx"; //optional "Simulation"
  parameter int    MEM_SIZE  = 4 * 1024; // 4 kB
  
  logic      Clk;
@@ -24,11 +24,11 @@ generate
 
 if(VENDOR == "Xilinx") begin
 
- clk_60Mhz clk_60Mhz_inst
+ PLL PLL_inst
  (
   // Clock out ports
   .clk_out1(Clk),
-  .reset(!sys_rst_n),
+  .reset(1'b0),
   .clk_in1(Clk_14_7456MHz)
   );
 end

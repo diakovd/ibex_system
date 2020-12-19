@@ -1,27 +1,31 @@
 `ifndef TMRDEF_H
- `define TMRDEF_H
+`define TMRDEF_H
  
  `define aw	32
 
- `define dTmVal 	`aw'd00
- `define dTmPr  	`aw'd01
- `define dTmPrSh 	`aw'd02
- `define dTmCmp 	`aw'd03
- `define dTmCmpSh	`aw'd04
- `define dTmCap0	`aw'd05
- `define dTmCap1	`aw'd06
- `define dTmCap2	`aw'd07
- `define dTmCap3	`aw'd08
- `define dTRS 		`aw'd09
- `define dTCFS 		`aw'd10
- `define dTRSt 		`aw'd11
- `define dTMS 		`aw'd12
- `define dECR 		`aw'd13
- `define dCMC 		`aw'd14
- `define dISR 		`aw'd15
- `define dIEC 		`aw'd16
- `define dISC 		`aw'd17
- `define dPLC		`aw'd18
+ `define dTRS 		`aw'd00
+ `define dTCFS 		`aw'd01
+ `define dTRSt 		`aw'd02
+ `define dTMS 		`aw'd03
+ `define dECR 		`aw'd04
+ `define dCMC 		`aw'd05
+ `define dISR 		`aw'd06
+ `define dIEC 		`aw'd07
+ `define dISC 		`aw'd08
+ `define dPLC		`aw'd09
+ `define dTmVal 	`aw'd10
+ `define dTmPr  	`aw'd11
+ `define dTmPrSh 	`aw'd12
+ `define dTmCap0	`aw'd13
+ `define dTmCap1	`aw'd14
+ `define dTmCap2	`aw'd15
+ `define dTmCap3	`aw'd16
+ `define dTmC1mC0	`aw'd17
+ `define dTmC3mC2 	`aw'd18
+ `define dTmCmp 	`aw'd19
+ `define dTmCmpSh	`aw'd20
+
+
  
  typedef struct packed{
 	reg [28:0] bit31_3; //r
@@ -84,7 +88,8 @@
  } Connection_Matrix_Control;	// 
 
  typedef struct packed{
-	reg [24:0] bit31_25;//r
+	reg [24:0] bit31_24;//r
+	// reg EvCC;			// Clear on Capture event
 	reg Ev2DS;			// Event 2 Detection Status
 	reg Ev1DS;			// Event 1 Detection Status
 	reg Ev0DS;			// Event 0 Detection Status
@@ -95,7 +100,8 @@
  } Interrupt_Status_register;	// 
 
  typedef struct packed{
-	reg [24:0] bit31_25;//r
+	reg [24:0] bit31_24;//r
+	// reg EvCCEn;			// Clear on Capture event enable
 	reg Ev2DSEn;		// Event 2 Detection Status enable
 	reg Ev1DSEn;		// Event 1 Detection Status enable
 	reg Ev0DSEn;		// Event 0 Detection Status enable
@@ -106,8 +112,8 @@
  } Interrupt_Enable_Control;	//  
  
   typedef struct packed{
-	reg [30:0] bit31_1; //r
-	reg OPL;				// Output Passive Level
+	// reg [1:0] bit31; //r
+	reg [31:0] OPL;				// Output Passive Level
  } Passive_Level_Config;	// PLC
 
 `endif

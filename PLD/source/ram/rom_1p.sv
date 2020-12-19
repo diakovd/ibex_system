@@ -6,7 +6,7 @@
 `timescale 1ps/1ps
 
 module rom_1p #(
-    parameter string VENDOR = "Xilinx", //optional "IntelFPGA" , "Simulation", "Xilinx" 
+    parameter VENDOR = "Xilinx", //optional "IntelFPGA" , "Simulation", "Xilinx" 
     parameter int Depth = 128
 ) 
 (
@@ -76,26 +76,50 @@ if(VENDOR == "Simulation")begin
   
 end
 else if(VENDOR == "Xilinx")begin
-/*
+
  wire [3:0] wea;
+ wire [3:0] web;
  
  assign wea[0] = (RstBoot)? BootDat.be[0] & BootCtr.req & BootCtr.we : CPUdat.be[0] & CPUCtr.req & CPUCtr.we; 
  assign wea[1] = (RstBoot)? BootDat.be[1] & BootCtr.req & BootCtr.we : CPUdat.be[1] & CPUCtr.req & CPUCtr.we; 
  assign wea[2] = (RstBoot)? BootDat.be[2] & BootCtr.req & BootCtr.we : CPUdat.be[2] & CPUCtr.req & CPUCtr.we; 
  assign wea[3] = (RstBoot)? BootDat.be[3] & BootCtr.req & BootCtr.we : CPUdat.be[3] & CPUCtr.req & CPUCtr.we; 
 
- RAM_instr RAM_inst(
+ assign web[0] = RAM_DatBus.be[0] & RAM_CtrBus.req & RAM_CtrBus.we; 
+ assign web[1] = RAM_DatBus.be[1] & RAM_CtrBus.req & RAM_CtrBus.we; 
+ assign web[2] = RAM_DatBus.be[2] & RAM_CtrBus.req & RAM_CtrBus.we; 
+ assign web[3] = RAM_DatBus.be[3] & RAM_CtrBus.req & RAM_CtrBus.we; 
+
+ // RAM_instr RAM_inst(
  
-    .clka(clk),
-//    .ena(1'b1),
-    .wea(wea),   //(3 DOWNTO 0)
-    .addra(addr_idx[Aw-1+2:0]), //(11 DOWNTO 0)
-    .dina(wdata_idx),  //(31 DOWNTO 0)
-    .douta(rdata_idx)  //(31 DOWNTO 0)
-  );
- assign  CPUCtr.rdata  = rdata_idx;
- assign  BootCtr.rdata = rdata_idx;	
-*/  
+    // .clka(clk),
+// //    .ena(1'b1),
+    // .wea(wea),   //(3 DOWNTO 0)
+    // .addra(addr_idx[Aw-1+2:0]), //(11 DOWNTO 0)
+    // .dina(wdata_idx),  //(31 DOWNTO 0)
+    // .douta(rdata_idx)  //(31 DOWNTO 0)
+  // );
+ // assign  CPUCtr.rdata  = rdata_idx;
+ // assign  BootCtr.rdata = rdata_idx;	
+// */  
+
+ RAMdp RAM_inst(
+	.addra(addr_idx[Aw-1:0]),
+	.dina(wdata_idx),
+	.wea(wea),
+	.douta(rdata_idx),
+	.clka(clk),
+
+	.addrb(RAM_DatBus.addr[Aw-1+2:2]),
+	.dinb(RAM_DatBus.wdata),
+	.web(web),
+	.doutb(RAM_CtrBus.rdata),
+	.clkb(clk)
+ );
+ 
+ assign CPUCtr.rdata  = rdata_idx;
+ assign BootCtr.rdata = rdata_idx;
+  
 end  
 else if(VENDOR == "IntelFPGA")begin
 

@@ -1,5 +1,5 @@
- `include "D:/Work/test_pr/ibex-sys/PLD/source/defines.sv"
- `include "D:/Work/test_pr/ibex-sys/PLD/source/peripherial/Timer/TmrDef.sv"
+ `include "../source/defines.sv"
+ `include "../source/peripherial/Timer/TmrDef.sv"
    
   module Timer_tb;
 
@@ -31,7 +31,7 @@
  begin
 	@(posedge Clk);
 	CPUdat.wdata = dat;
-	CPUdat.addr = adr;
+	CPUdat.addr = adr << 2;
 	CPUctr.req = 1;  
 	CPUctr.we  = 1;
 	CPUdat.be  = 4'b1111;
@@ -52,7 +52,7 @@
  begin
 	@(posedge Clk);
 	CPUdat.wdata = 0;
-	CPUdat.addr = adr;
+	CPUdat.addr = adr << 2;
 	CPUctr.req = 1;  
 	CPUctr.we  = 0;
 	CPUdat.be  = 4'b1111;
@@ -77,7 +77,7 @@
  begin
 	
 	//Write period val
-	busWR32(`dTmPr,32'h000000ff);
+//	busWR32(`dTmPr,32'h000000ff);
 	busWR32(`dTmPrSh,32'h000000ff);
 
 	//Set Interrupt 
@@ -177,14 +177,12 @@
  begin
 
 	//Write period val
-	busWR32(`dTmPr,32'h000000ff);
 	busWR32(`dTmPrSh,32'h000000ff);
 	//Write period val
-	busWR32(`dTmCmp,  32'h0000007f);
-	busWR32(`dTmCmpSh,32'h0000007f);
+	busWR32((`dTmCmpSh + 2),32'h0000007f);
 
 	//Set Timer mode
-	TMS = 1'b1; //Set TCM Center aligned mode
+	TMS = 1'b0; //Set TCM Center aligned mode
 	TMS = TMS | (1'b0 << 10); //External Modulation Synchronization
 	busWR32(`dTMS, TMS); 
 
@@ -225,7 +223,7 @@
  end 
  endtask 
  
- Timer Timer_inst(
+ Timer #(.addrBase(0),.bw(32),.bwPWM(2)) Timer_inst(
 	.CPUdat(CPUdat),
 	.CPUctr(CPUctr),
 
@@ -249,8 +247,8 @@
  	#100;
 	@(posedge Clk);
 
-	fun_Timer_tst();
-//	fun_Compare_tst();
+//	fun_Timer_tst();
+	fun_Compare_tst();
 	
 	
  end

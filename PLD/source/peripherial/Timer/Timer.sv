@@ -1,30 +1,49 @@
+
  `include "../source/defines.sv"
  `include "../source/peripherial/Timer/TmrDef.sv"  
-
+ // `include "defines.sv"
+ // `include "TmrDef.sv"  
+ 
  module Timer(
-	 DatBus.Slave  CPUdat,
-	 CtrBus.Slave  CPUctr,
+	CPUdat,
+	CPUctr,
 
-	 input Evnt0,
-	 input Evnt1,
-	 input Evnt2,
-	 output PWM,
+	Evnt0,
+	Evnt1,
+	Evnt2,
+	PWM,
 
-	 output Int,
-	 input  Rst,
-	 input  Clk
+	Int,
+	Rst,
+	Clk
  );
  parameter int addrBase = 0;
+ parameter bw    = 32; //conter bit wigh, max = 32 bit   
+ parameter bwPWM = 1; //number of PWM output   
 
- logic [31:0] TmVal; //Timer Value
- logic [31:0] TmPr;  //Timer Period Value
- logic [31:0] TmPrSh;//This register contains the value for the timer period that is going to be transferred into the Period Value field when the next shadow 
- logic [31:0] TmCmp;  //This register contains the value for the timer comparison.
- logic [31:0] TmCmpSh;//Timer Shadow Compare Value
- logic [31:0] TmCap0; //Timer Capture Register
- logic [31:0] TmCap1; //Timer Capture Register
- logic [31:0] TmCap2; //Timer Capture Register
- logic [31:0] TmCap3; //Timer Capture Register
+ DatBus.Slave  CPUdat;
+ CtrBus.Slave  CPUctr;
+
+ input Evnt0;
+ input Evnt1;
+ input Evnt2;
+ output [bwPWM - 1:0] PWM;
+
+ output Int;
+ input  Rst;
+ input  Clk;
+
+ logic [bw - 1:0] TmVal; //Timer Value
+ logic [bw - 1:0] TmPr;  //Timer Period Value
+ logic [bw - 1:0] TmPrSh;//This register contains the value for the timer period that is going to be transferred into the Period Value field when the next shadow 
+ logic [bw - 1:0] TmCap0; //Timer Capture Register
+ logic [bw - 1:0] TmCap1; //Timer Capture Register
+ logic [bw - 1:0] TmCap2; //Timer Capture Register
+ logic [bw - 1:0] TmCap3; //Timer Capture Register
+ logic [bw - 1:0] TmCmp[bwPWM];  //This register contains the value for the timer comparison.
+ logic [bw - 1:0] TmCmpSh[bwPWM];//Timer Shadow Compare Value
+ logic [bw - 1:0] TmC1mC0; //Timer Capture1 minus Capture0 register
+ logic [bw - 1:0] TmC3mC2; //Timer Capture3 minus Capture2 Register
 
  Timer_Run_Set TRS;
  Timer_Capture_Flags_Status TCFS;
@@ -37,8 +56,8 @@
  Interrupt_Enable_Control IEC;
  Passive_Level_Config PLC;
 
- logic  TmrEn;
- logic CompMth;
+ logic TmrEn;
+ logic [bwPWM - 1:0] CompMth;
  logic ZeroMth;
  logic PrdMth;
  logic OneMth;
@@ -82,13 +101,15 @@
  logic Cap2wr;
  logic Cap3wr;
  
- logic pwmOut;
- logic pwmOut_del;
+ logic [bwPWM - 1:0] pwmOut;
+ logic [bwPWM - 1:0] pwmOut_del;
  logic EvMod;
- logic pwmStp;
+ logic [bwPWM - 1:0] pwmStp;
  
  logic [31:0] addr; 
  logic [31:0] addrNoB; 
+ 
+ int j,k,m,f,i;
  
  //Bus Registers Write/Read
  assign wr = CPUctr.req & CPUctr.we & CPUctr.gnt;
@@ -100,8 +121,6 @@
 	if(Rst)	begin
 	   TmPr  	<= 0;
 	   TmPrSh 	<= 0;
-	   TmCmp 	<= 0;
-	   TmCmpSh	<= 0;
 	   TRS 		<= 0;
 	   TMS 		<= 0;
 	   ECR 		<= 0;
@@ -112,20 +131,41 @@
 	   TCFS.C2Full <= 0;
 	   TCFS.C3Full <= 0;
 	   PLC		<= 0;	
-	   rd 		<= 0; 	   
+	   rd 		<= 0; 	
+	   
+	   for (m = 0; m < bwPWM; m++) begin	
+		   TmCmp[m] 	<= 0;
+		   TmCmpSh[m]	<= 0;	   
+	   end
 	end
 	else begin
 		rd <= CPUctr.req & !CPUctr.we & CPUctr.gnt;
 		
-		if (wr & addr == `dTmPr) TmPr <= CPUdat.wdata; 
-		else if(TmrEn & STT) 			TmPr <= TmPrSh; // Timer shadow trasfer
+		if (wr) begin
+			if(addr == `dTmPr) 				     TmPr <= CPUdat.wdata[bw-1:0];
+			else if(!TRSt.TR & addr == `dTmPrSh) TmPr <= CPUdat.wdata[bw-1:0];	
+		end
+		else if(TRSt.TR & STT) TmPr <= TmPrSh; // Timer shadow trasfer
 
-		if (wr & addr == `dTmPrSh) TmPrSh	<= CPUdat.wdata;
+		if (wr & addr == `dTmPrSh) TmPrSh	<= CPUdat.wdata[bw-1:0];
 		
-		if (wr & addr == `dTmCmp)  TmCmp	<= CPUdat.wdata;
-		else if(TmrEn & STT) 			   TmCmp 	<= TmCmpSh; 
+		// if (wr) begin
+			// if(addr == `dTmCmp) 	  			  TmCmp <= CPUdat.wdata[bw-1:0];
+			// else if(!TRSt.TR & addr == `dTmCmpSh) TmCmp <= CPUdat.wdata[bw-1:0];
+		// end
+		// else if(TRSt.TR & STT) 			   TmCmp 	<= TmCmpSh; 
 		
-		if (wr & addr == `dTmCmpSh) TmCmpSh	<= CPUdat.wdata;
+		// if (wr & addr == `dTmCmpSh) TmCmpSh	<= CPUdat.wdata[bw-1:0];
+
+		for (j = 0; j < bwPWM; j++) begin
+				if (wr) begin
+					if(addr == (`dTmCmp + 2*j)) 		  		 TmCmp[j] <= CPUdat.wdata[bw-1:0];
+					else if(!TRSt.TR & addr == (`dTmCmpSh+ 2*j)) TmCmp[j] <= CPUdat.wdata[bw-1:0];
+				end
+				else if(TRSt.TR & STT) TmCmp[j] <= TmCmpSh[j]; 
+				
+				if (wr & addr == (`dTmCmp + 2*j + 1)) TmCmpSh[j] <= CPUdat.wdata[bw-1:0];
+		 end
 
 		if (wr & addr == `dTRS) TRS <= CPUdat.wdata;
 								  else TRS <= 0;
@@ -143,16 +183,16 @@
 
 		if (wr & addr == `dPLC) PLC <= CPUdat.wdata;
 		
-		if(Cap0wr) 						   TCFS.C0Full <= 1;
+		if(Cap0wr) 					   TCFS.C0Full <= 1;
 		else if(rd & addr == `dTmCap0) TCFS.C0Full <= 0;
 
-		if(Cap1wr) 						   TCFS.C1Full <= 1;
+		if(Cap1wr) 					   TCFS.C1Full <= 1;
 		else if(rd & addr == `dTmCap1) TCFS.C1Full <= 0;
 
-		if(Cap2wr) 						   TCFS.C2Full <= 1;
+		if(Cap2wr) 						TCFS.C2Full <= 1;
 		else if(rd & addr == `dTmCap2) TCFS.C2Full <= 0;
 
-		if(Cap3wr) 						   TCFS.C3Full <= 1;
+		if(Cap3wr) 					   TCFS.C3Full <= 1;
 		else if(rd & addr == `dTmCap3) TCFS.C3Full <= 0;
 		
 		CPUctr.rvalid <= CPUctr.req;
@@ -168,8 +208,6 @@
 	if     (addr == `dTmVal)  CPUctr.rdata <= TmVal;	
 	else if(addr == `dTmPr)   CPUctr.rdata <= TmPr;	
 	else if(addr == `dTmPrSh) CPUctr.rdata <= TmPrSh;	
-	else if(addr == `dTmCmp)  CPUctr.rdata <= TmCmp;	
-	else if(addr == `dTmCmpSh)CPUctr.rdata <= TmCmpSh;	
 	else if(addr == `dTmCap0) CPUctr.rdata <= TmCap0;	
 	else if(addr == `dTmCap1) CPUctr.rdata <= TmCap1;	
 	else if(addr == `dTmCap2) CPUctr.rdata <= TmCap2;	
@@ -181,6 +219,14 @@
 	else if(addr == `dISR)    CPUctr.rdata <= ISR;
 	else if(addr == `dIEC)    CPUctr.rdata <= IEC;
 	else if(addr == `dPLC)    CPUctr.rdata <= PLC;
+	else if(addr == `dTmC1mC0) CPUctr.rdata <= TmC1mC0;	
+	else if(addr == `dTmC3mC2) CPUctr.rdata <= TmC3mC2;	
+	else if(addr >= `dTmCmp)  begin
+		for (k = 0; k < bwPWM; k++) begin
+			if(addr == (`dTmCmp + 2*k)) CPUctr.rdata <= TmCmp[k];
+			else if (addr == (`dTmCmp + 2*k + 1)) CPUctr.rdata <=  TmCmpSh[k];
+		end
+	end	
 	else CPUctr.rdata <= 0; 	
 
  end
@@ -188,9 +234,11 @@
  
  always_comb begin
 
-	if(TmVal == TmCmp) CompMth = 1; // Timer Compare match		
-				  else CompMth = 0;
-		
+	for (f = 0; f < bwPWM; f++) begin
+		if(TmVal == TmCmp[f]) CompMth[f] = 1; // Timer Compare match		
+						 else CompMth[f] = 0;
+	end	
+	
 	if(TmVal == 0) ZeroMth = 1; // Timer Zero match 		
 			  else ZeroMth = 0;
 	 
@@ -229,15 +277,23 @@
 		TmCap0 <= 0;		 
 		TmCap1 <= 0;		 
 		TmCap2 <= 0;		 
-		TmCap3 <= 0;		 
+		TmCap3 <= 0;
+		TmC1mC0	<= 0;	 
+		TmC3mC2	<= 0;	 
 	end
 	else begin
 		
 		//External Capture
 		if (Cap0wr) TmCap0 <= TmVal; 
-		if (Cap1wr) TmCap1 <= TmVal; 
+		if (Cap1wr) TmCap1 <= TmCap0; 
 		if (Cap2wr) TmCap2 <= TmVal; 
-		if (Cap3wr) TmCap3 <= TmVal; 
+		if (Cap3wr) TmCap3 <= TmCap2; 
+		
+		if(TmCap1 <= TmCap0) TmC1mC0 <= TmCap0 - TmCap1;
+		else TmC1mC0 <= TmPr + TmCap0 - TmCap1 + 1;
+
+		if(TmCap3 <= TmCap2) TmC3mC2 <= TmCap2 - TmCap3;
+		else TmC3mC2 <= TmPr + TmCap2 - TmCap3 + 1;
 		
 		//Interrupt Request Generation
 		if(IEC.Ev2DSEn & Evnt2Edg) ISR.Ev2DS = 1; // Event 1 Detection Status
@@ -446,7 +502,7 @@
 		else if(TRSt.TR) begin // TIMER ON
 			if(TmLoad) begin //External Timer Load Functionality 
 				if(TRSt.TCD) TmVal <= TmPr; 
-						else TmVal <= TmCmp;
+						else TmVal <= TmCmp[0];
 			end
 			else if(TmrEn) begin // & FTClk
 				if(ZeroMth &  TRSt.TCD) begin //(TmVal == 0) zero math and count down
@@ -471,46 +527,54 @@
 		end 
 		
 		//PWM output generation (compare mode)
-		if(TRSt.TR) begin
-			if(pwmStp) begin // modulation event is used to clear
-				pwmOut = 0; 
-			end
-			else if(TmrEn) begin 
-				if(TMS.TCM) begin
-					if (CompMth)     pwmOut = !pwmOut;
-					else if(ZeroMth)  pwmOut = 0;
+		for (i = 0; i < bwPWM; i++) begin
+			if(TRSt.TR) begin
+				if(pwmStp[i]) begin // modulation event is used to clear
+					pwmOut[i] = 0; 
 				end
-				else begin
-					if(TRSt.TCD) begin
-						if (CompMth) 	 pwmOut = 0;
-						else if(ZeroMth) pwmOut = 1;
+				else if(TmrEn) begin 
+					if(TMS.TCM) begin
+						if (CompMth[i])  pwmOut[i] = !pwmOut[i];
+						else if(ZeroMth) pwmOut[i] = 0;
 					end
 					else begin
-						if (CompMth)     pwmOut = 1;
-						else if(PrdMth) pwmOut = 0;
+						if(TRSt.TCD) begin
+							if (CompMth[i])  pwmOut[i] = 0;
+							else if(ZeroMth) pwmOut[i] = 1;
+						end
+						else begin
+							if (CompMth[i]) pwmOut[i] = 1;
+							else if(PrdMth) pwmOut[i] = 0;
+						end
 					end
 				end
 			end
+			else begin
+				if(TmVal > TmCmp[i]) pwmOut[i] = 1;		
+							    else pwmOut[i] = 0;
+			end	
+		
+			//External Modulation Synchronization
+			pwmOut_del[i] <= pwmOut[i];
+			if(TMS.EMS) begin //synchronized with the PWM signal
+				if(EvMod & (!pwmOut[i] & pwmOut_del[i])) pwmStp[i] = 1;
+				else if(!EvMod) pwmStp[i] = 0;
+			end
+			else begin
+				if(EvMod) pwmStp[i] = 1; //not synchronized
+				else pwmStp[i] = 0; 
+			end
 		end
-		else begin
-			if(TmVal > TmCmp) pwmOut = 1;		
-						 else pwmOut = 0;
-		end	
 
-		//External Modulation Synchronization
-		pwmOut_del <= pwmOut;
-		if(TMS.EMS) begin //synchronized with the PWM signal
-			if(EvMod & (!pwmOut & pwmOut_del)) pwmStp = 1;
-			else if(!EvMod) pwmStp = 0;
-		end
-		else begin
-			if(EvMod) pwmStp = 1; //not synchronized
-			else pwmStp = 0; 
-		end
 	end
  end
  
  //OUTPUT	
- assign PWM	= (PLC.OPL)? !pwmOut : pwmOut;	
-
+ generate
+	genvar z;
+	for (z = 0; z < bwPWM; z++) begin
+		assign PWM[z] = (PLC.OPL[z])? !pwmOut[z] : pwmOut[z];	
+	end
+ endgenerate
+ 
  endmodule
