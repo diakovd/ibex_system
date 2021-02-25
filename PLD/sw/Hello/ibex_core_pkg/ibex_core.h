@@ -18,7 +18,9 @@
 #define UART0_BASE_ADDR (IO_BASE_ADDR + IO_SIZE)
 #define UART0_SIZE   0x00010
 #define Timer_BASE_ADDR (UART0_BASE_ADDR + UART0_SIZE)
-#define Timer_SIZE   0x00050
+#define Timer_SIZE   0x00060
+#define Timer1_BASE_ADDR (Timer_BASE_ADDR + Timer_SIZE)
+#define Timer1_SIZE   0x00060
 
 // IOF masks
 
@@ -38,6 +40,7 @@
 #define IO_REG8(offset)  _REG8(IO_BASE_ADDR, offset)
 #define UART0_REG(offset)  _REG8(UART0_BASE_ADDR, offset)
 #define Timer_REG(offset)  _REG32(Timer_BASE_ADDR, offset)
+#define Timer1_REG(offset)  _REG32(Timer1_BASE_ADDR, offset)
 
 #define IRQ_M_SOFT   3
 #define IRQ_M_TIMER  7

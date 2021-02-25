@@ -75,13 +75,15 @@
  } Event_control_register;	// 
 
  typedef struct packed{
-	reg [13:0] 	bit31_18; //r
-	reg [1:0] MdlS;			// External Modulation Functionality Selector
-	reg [1:0] CntS;			// External Count Selector
-	reg [1:0] LdS;			// External Timer Load Functionality Selector
+	reg [9:0] 	bit31_18; //r
+	reg [1:0] CntCapS1;			// External Count to Capture 1 selector	
+	reg [1:0] CntCapS0;			// External Count to Capture 0 selector	
+	reg [1:0] MdlS;				// External Modulation Functionality Selector
+	reg [1:0] CntS;				// External Count Selector
+	reg [1:0] LdS;				// External Timer Load Functionality Selector
 	reg [1:0]   UpDwS;			// External Up/Down Functionality Selector
 	reg [1:0]   GatS;			// External Gate Functionality Selector
-	reg [1:0] 	CapS1;			// External Capture 0 Functionality Selector
+	reg [1:0] 	CapS1;			// External Capture 1 Functionality Selector
 	reg [1:0] 	CapS0;			// External Capture 0 Functionality Selector
 	reg [1:0] 	StpS;			// External Stop Functionality Selector
 	reg [1:0] 	StrtS;			// External Start Functionality Selector

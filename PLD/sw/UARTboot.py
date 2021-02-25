@@ -1,5 +1,5 @@
 import serial
-ser = serial.Serial(port = 'COM4', baudrate=921600, parity=serial.PARITY_ODD)
+ser = serial.Serial(port = 'COM3', baudrate=921600, parity=serial.PARITY_ODD)
 if(ser.isOpen() == False):
     ser.open()
 
@@ -57,4 +57,5 @@ for line in fd:
 for i in range(0,32):
     ser.write(ONbyte)
 
-fd.close()             # close port
+fd.close()    
+ser.close()         # close port

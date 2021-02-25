@@ -1,50 +1,47 @@
 
  `include "../source/defines.sv"
- `include "../source/peripherial/Timer/TmrDef.sv"  
+ `include "../source/peripherial/Timer/TmrDef.sv"
+ `include "../source/bus_mux/ahb3lite_bus/ahb3lite_bus.sv" 
  // `include "defines.sv"
  // `include "TmrDef.sv"  
+ import ahb3lite_pkg::*;
  
- module Timer(
-	CPUdat,
-	CPUctr,
+ module  Timer
+ #(
+  parameter BASE 		  	  = 0,  // base addr on bus
+  parameter TM_SIZE    		  = 32, //conter bit wigh, max = 32 bit   
+  parameter PWM_SIZE 		  = 1, //number of PWM output   
+  parameter HADDR_SIZE        = 8,
+  parameter HDATA_SIZE        = 32
+ )
+ (
+	ahb3lite_bus.slave  CPUbus,
 
-	Evnt0,
-	Evnt1,
-	Evnt2,
-	PWM,
+	input Evnt0,
+	input Evnt1,
+	input Evnt2,
+	output [PWM_SIZE - 1:0] PWM,
 
-	Int,
-	Rst,
-	Clk
+	output Int
  );
- parameter int addrBase = 0;
- parameter bw    = 32; //conter bit wigh, max = 32 bit   
- parameter bwPWM = 1; //number of PWM output   
+ 
+  localparam BE_SIZE    = HDATA_SIZE/8;
+  localparam ABITS_LSB  = $clog2(BE_SIZE);
 
- DatBus.Slave  CPUdat;
- CtrBus.Slave  CPUctr;
 
- input Evnt0;
- input Evnt1;
- input Evnt2;
- output [bwPWM - 1:0] PWM;
-
- output Int;
- input  Rst;
- input  Clk;
-
- logic [bw - 1:0] TmVal; //Timer Value
- logic [bw - 1:0] TmPr;  //Timer Period Value
- logic [bw - 1:0] TmPrSh;//This register contains the value for the timer period that is going to be transferred into the Period Value field when the next shadow 
- logic [bw - 1:0] TmCap0; //Timer Capture Register
- logic [bw - 1:0] TmCap1; //Timer Capture Register
- logic [bw - 1:0] TmCap2; //Timer Capture Register
- logic [bw - 1:0] TmCap3; //Timer Capture Register
- logic [bw - 1:0] TmCmp[bwPWM];  //This register contains the value for the timer comparison.
- logic [bw - 1:0] TmCmpSh[bwPWM];//Timer Shadow Compare Value
- logic [bw - 1:0] TmC1mC0; //Timer Capture1 minus Capture0 register
- logic [bw - 1:0] TmC3mC2; //Timer Capture3 minus Capture2 Register
-
+ logic [TM_SIZE - 1:0] TmVal; //Timer Value
+ logic [TM_SIZE - 1:0] TmPr;  //Timer Period Value
+ logic [TM_SIZE - 1:0] TmPrSh;//This register contains the value for the timer period that is going to be transferred into the Period Value field when the next shadow 
+ logic [TM_SIZE - 1:0] TmCap0; //Timer Capture Register
+ logic [TM_SIZE - 1:0] TmCap1; //Timer Capture Register
+ logic [TM_SIZE - 1:0] TmCap2; //Timer Capture Register
+ logic [TM_SIZE - 1:0] TmCap3; //Timer Capture Register
+ logic [TM_SIZE - 1:0] TmCmp[PWM_SIZE];  //This register contains the value for the timer comparison.
+ logic [TM_SIZE - 1:0] TmCmpSh[PWM_SIZE];//Timer Shadow Compare Value
+ logic [TM_SIZE - 1:0] TmC1mC0; //Timer Capture1 minus Capture0 register
+ logic [TM_SIZE - 1:0] TmC3mC2; //Timer Capture3 minus Capture2 Register logic TmCmp
+ logic [TM_SIZE - 1:0] TmCmpRD;
+ 
  Timer_Run_Set TRS;
  Timer_Capture_Flags_Status TCFS;
  Timer_Run_Status TRSt;
@@ -57,7 +54,7 @@
  Passive_Level_Config PLC;
 
  logic TmrEn;
- logic [bwPWM - 1:0] CompMth;
+ logic [PWM_SIZE - 1:0] CompMth;
  logic ZeroMth;
  logic PrdMth;
  logic OneMth;
@@ -87,6 +84,8 @@
  logic Evnt0Lvl;
  logic Evnt1Lvl;
  logic Evnt2Lvl;
+ logic EvCntCapS0;
+ logic EvCntCapS1;
  
  logic [2:0] ctrLPF0 = 0;
  logic [2:0] ctrLPF1 = 0;
@@ -101,24 +100,37 @@
  logic Cap2wr;
  logic Cap3wr;
  
- logic [bwPWM - 1:0] pwmOut;
- logic [bwPWM - 1:0] pwmOut_del;
+ logic [PWM_SIZE - 1:0] pwmOut;
+ logic [PWM_SIZE - 1:0] pwmOut_del;
  logic EvMod;
- logic [bwPWM - 1:0] pwmStp;
+ logic [PWM_SIZE - 1:0] pwmStp;
  
- logic [31:0] addr; 
+ logic [9:0] addr; 
  logic [31:0] addrNoB; 
  
  int j,k,m,f,i;
  
  //Bus Registers Write/Read
- assign wr = CPUctr.req & CPUctr.we & CPUctr.gnt;
+ always @(posedge CPUbus.HCLK)
+    if (CPUbus.HREADY) wr <= CPUbus.HSEL & CPUbus.HWRITE & (CPUbus.HTRANS != HTRANS_BUSY) & (CPUbus.HTRANS != HTRANS_IDLE);
+    else         wr <= 1'b0;
+
+ always @(posedge CPUbus.HCLK)
+    if (CPUbus.HREADY) rd <= CPUbus.HSEL & ~CPUbus.HWRITE & (CPUbus.HTRANS != HTRANS_BUSY) & (CPUbus.HTRANS != HTRANS_IDLE);
+    else               rd <= 1'b0;
  
- assign addrNoB = CPUdat.addr - addrBase;
- assign addr = {2'b0,addrNoB[31 : 2]};
+   //store write address
+ always @(posedge CPUbus.HCLK)
+    if (CPUbus.HREADY) begin
+		addrNoB =  CPUbus.HADDR - BASE;
+		addr 	<= addrNoB[HADDR_SIZE - 1 : ABITS_LSB];
+	end
+ //AHB bus response
+ assign CPUbus.HRESP = HRESP_OKAY; //always OK
+ assign CPUbus.HREADYOUT = 1'b1;
  
- always@ (posedge Clk) begin
-	if(Rst)	begin
+ always@ (posedge CPUbus.HCLK) begin
+	if(!CPUbus.HRESETn)	begin
 	   TmPr  	<= 0;
 	   TmPrSh 	<= 0;
 	   TRS 		<= 0;
@@ -131,57 +143,46 @@
 	   TCFS.C2Full <= 0;
 	   TCFS.C3Full <= 0;
 	   PLC		<= 0;	
-	   rd 		<= 0; 	
 	   
-	   for (m = 0; m < bwPWM; m++) begin	
+	   for (m = 0; m < PWM_SIZE; m++) begin	
 		   TmCmp[m] 	<= 0;
 		   TmCmpSh[m]	<= 0;	   
 	   end
 	end
 	else begin
-		rd <= CPUctr.req & !CPUctr.we & CPUctr.gnt;
-		
 		if (wr) begin
-			if(addr == `dTmPr) 				     TmPr <= CPUdat.wdata[bw-1:0];
-			else if(!TRSt.TR & addr == `dTmPrSh) TmPr <= CPUdat.wdata[bw-1:0];	
+			if(addr == `dTmPr) 				     TmPr <= CPUbus.HWDATA[TM_SIZE-1:0];
+			else if(!TRSt.TR & addr == `dTmPrSh) TmPr <= CPUbus.HWDATA[TM_SIZE-1:0];	
 		end
 		else if(TRSt.TR & STT) TmPr <= TmPrSh; // Timer shadow trasfer
 
-		if (wr & addr == `dTmPrSh) TmPrSh	<= CPUdat.wdata[bw-1:0];
+		if (wr & addr == `dTmPrSh) TmPrSh	<= CPUbus.HWDATA[TM_SIZE-1:0];
 		
-		// if (wr) begin
-			// if(addr == `dTmCmp) 	  			  TmCmp <= CPUdat.wdata[bw-1:0];
-			// else if(!TRSt.TR & addr == `dTmCmpSh) TmCmp <= CPUdat.wdata[bw-1:0];
-		// end
-		// else if(TRSt.TR & STT) 			   TmCmp 	<= TmCmpSh; 
-		
-		// if (wr & addr == `dTmCmpSh) TmCmpSh	<= CPUdat.wdata[bw-1:0];
-
-		for (j = 0; j < bwPWM; j++) begin
+		for (j = 0; j < PWM_SIZE; j++) begin
 				if (wr) begin
-					if(addr == (`dTmCmp + 2*j)) 		  		 TmCmp[j] <= CPUdat.wdata[bw-1:0];
-					else if(!TRSt.TR & addr == (`dTmCmpSh+ 2*j)) TmCmp[j] <= CPUdat.wdata[bw-1:0];
+					if(addr == (`dTmCmp + 2*j)) 		  		 TmCmp[j] <= CPUbus.HWDATA[TM_SIZE-1:0];
+					else if(!TRSt.TR & addr == (`dTmCmpSh+ 2*j)) TmCmp[j] <= CPUbus.HWDATA[TM_SIZE-1:0];
 				end
 				else if(TRSt.TR & STT) TmCmp[j] <= TmCmpSh[j]; 
 				
-				if (wr & addr == (`dTmCmp + 2*j + 1)) TmCmpSh[j] <= CPUdat.wdata[bw-1:0];
+				if (wr & addr == (`dTmCmp + 2*j + 1)) TmCmpSh[j] <= CPUbus.HWDATA[TM_SIZE-1:0];
 		 end
 
-		if (wr & addr == `dTRS) TRS <= CPUdat.wdata;
+		if (wr & addr == `dTRS) TRS <= CPUbus.HWDATA;
 								  else TRS <= 0;
 
-		if (wr & addr == `dTMS) TMS <= CPUdat.wdata;
+		if (wr & addr == `dTMS) TMS <= CPUbus.HWDATA;
 
-		if (wr & addr == `dECR) ECR <= CPUdat.wdata;
+		if (wr & addr == `dECR) ECR <= CPUbus.HWDATA;
 
-		if (wr & addr == `dCMC) CMC <= CPUdat.wdata;
+		if (wr & addr == `dCMC) CMC <= CPUbus.HWDATA;
 
-		if (wr & addr == `dIEC) IEC <= CPUdat.wdata;
+		if (wr & addr == `dIEC) IEC <= CPUbus.HWDATA;
 
-		if (wr & addr == `dISC) IntCl <= CPUdat.wdata;
+		if (wr & addr == `dISC) IntCl <= CPUbus.HWDATA;
 		else IntCl <= 0;
 
-		if (wr & addr == `dPLC) PLC <= CPUdat.wdata;
+		if (wr & addr == `dPLC) PLC <= CPUbus.HWDATA;
 		
 		if(Cap0wr) 					   TCFS.C0Full <= 1;
 		else if(rd & addr == `dTmCap0) TCFS.C0Full <= 0;
@@ -194,10 +195,7 @@
 
 		if(Cap3wr) 					   TCFS.C3Full <= 1;
 		else if(rd & addr == `dTmCap3) TCFS.C3Full <= 0;
-		
-		CPUctr.rvalid <= CPUctr.req;
-	    CPUctr.gnt <= CPUctr.req;
-		CPUctr.err = 0;
+
 	end
  end
  
@@ -205,36 +203,39 @@
  
  always_comb begin
  
-	if     (addr == `dTmVal)  CPUctr.rdata <= TmVal;	
-	else if(addr == `dTmPr)   CPUctr.rdata <= TmPr;	
-	else if(addr == `dTmPrSh) CPUctr.rdata <= TmPrSh;	
-	else if(addr == `dTmCap0) CPUctr.rdata <= TmCap0;	
-	else if(addr == `dTmCap1) CPUctr.rdata <= TmCap1;	
-	else if(addr == `dTmCap2) CPUctr.rdata <= TmCap2;	
-	else if(addr == `dTmCap3) CPUctr.rdata <= TmCap3;	
-	else if(addr == `dTCFS)   CPUctr.rdata <= TCFS;	
-	else if(addr == `dTRSt)   CPUctr.rdata <= TRSt;	
-	else if(addr == `dTMS)    CPUctr.rdata <= TMS;	
-	else if(addr == `dECR)    CPUctr.rdata <= ECR;
-	else if(addr == `dISR)    CPUctr.rdata <= ISR;
-	else if(addr == `dIEC)    CPUctr.rdata <= IEC;
-	else if(addr == `dPLC)    CPUctr.rdata <= PLC;
-	else if(addr == `dTmC1mC0) CPUctr.rdata <= TmC1mC0;	
-	else if(addr == `dTmC3mC2) CPUctr.rdata <= TmC3mC2;	
-	else if(addr >= `dTmCmp)  begin
-		for (k = 0; k < bwPWM; k++) begin
-			if(addr == (`dTmCmp + 2*k)) CPUctr.rdata <= TmCmp[k];
-			else if (addr == (`dTmCmp + 2*k + 1)) CPUctr.rdata <=  TmCmpSh[k];
-		end
-	end	
-	else CPUctr.rdata <= 0; 	
+	if     (addr == `dTmVal)  CPUbus.HRDATA <= TmVal;	
+	else if(addr == `dTmPr)   CPUbus.HRDATA <= TmPr;	
+	else if(addr == `dTmPrSh) CPUbus.HRDATA <= TmPrSh;	
+	else if(addr == `dTmCap0) CPUbus.HRDATA <= TmCap0;	
+	else if(addr == `dTmCap1) CPUbus.HRDATA <= TmCap1;	
+	else if(addr == `dTmCap2) CPUbus.HRDATA <= TmCap2;	
+	else if(addr == `dTmCap3) CPUbus.HRDATA <= TmCap3;	
+	else if(addr == `dTRS)    CPUbus.HRDATA <= TRS;	
+	else if(addr == `dTCFS)   CPUbus.HRDATA <= TCFS;	
+	else if(addr == `dTRSt)   CPUbus.HRDATA <= TRSt;	
+	else if(addr == `dTMS)    CPUbus.HRDATA <= TMS;	
+	else if(addr == `dECR)    CPUbus.HRDATA <= ECR;
+	else if(addr == `dCMC) 	  CPUbus.HRDATA <= CMC;
+	else if(addr == `dISR)    CPUbus.HRDATA <= ISR;
+	else if(addr == `dIEC)    CPUbus.HRDATA <= IEC;
+	else if(addr == `dPLC)    CPUbus.HRDATA <= PLC;
+	else if(addr == `dTmC1mC0)CPUbus.HRDATA <= TmC1mC0;	
+	else if(addr == `dTmC3mC2)CPUbus.HRDATA <= TmC3mC2;	
+	else if(addr >= `dTmCmp)  CPUbus.HRDATA <= TmCmpRD;
+	else CPUbus.HRDATA <= 0; 	
 
+	for (k = 0; k < PWM_SIZE; k++) begin
+		if(addr == (`dTmCmp + 2*k)) TmCmpRD <= TmCmp[k];
+		else if (addr == (`dTmCmp + 2*k + 1)) TmCmpRD <=  TmCmpSh[k];
+		else TmCmpRD <= 0; 
+	end	
+	
  end
  
  
  always_comb begin
 
-	for (f = 0; f < bwPWM; f++) begin
+	for (f = 0; f < PWM_SIZE; f++) begin
 		if(TmVal == TmCmp[f]) CompMth[f] = 1; // Timer Compare match		
 						 else CompMth[f] = 0;
 	end	
@@ -271,8 +272,8 @@
 				 (!TMS.CCE & (TCFS.C2Full & !TCFS.C3Full))? EvCap1 : 0;	
 
 	
- always@ (posedge Clk) begin
-	if(Rst)	begin
+ always@ (posedge CPUbus.HCLK) begin
+	if(!CPUbus.HRESETn)	begin
 		ISR  <= 0;
 		TmCap0 <= 0;		 
 		TmCap1 <= 0;		 
@@ -284,10 +285,28 @@
 	else begin
 		
 		//External Capture
-		if (Cap0wr) TmCap0 <= TmVal; 
-		if (Cap1wr) TmCap1 <= TmCap0; 
-		if (Cap2wr) TmCap2 <= TmVal; 
-		if (Cap3wr) TmCap3 <= TmCap2; 
+		if(CMC.CntCapS0 == 0) begin // capture mode
+			if (Cap0wr) TmCap0 <= TmVal; 
+			if (Cap1wr) TmCap1 <= TmCap0;
+		end
+		else begin // count external event into capture 0 - 1 register
+			if(TRSt.TR & PrdMth) begin // clear TmCap0 and save TmCap0 value to TmCap1
+				TmCap1 <= TmCap0;
+				TmCap0 <= 0;
+			end
+			else if(EvCntCapS0) TmCap0 <= TmCap0 + 1; 
+		end
+		if(CMC.CntCapS1 == 0) begin  // capture mode
+			if (Cap2wr) TmCap2 <= TmVal; 
+			if (Cap3wr) TmCap3 <= TmCap2; 
+		end
+		else begin // count external event into capture 2 - 3 register
+			if(TRSt.TR & PrdMth) begin // clear TmCap2 and save TmCap2 value to TmCap3
+				TmCap3 <= TmCap2;
+				TmCap2 <= 0;
+			end
+			else if(EvCntCapS1) TmCap2 <= TmCap2 + 1;
+		end
 		
 		if(TmCap1 <= TmCap0) TmC1mC0 <= TmCap0 - TmCap1;
 		else TmC1mC0 <= TmPr + TmCap0 - TmCap1 + 1;
@@ -322,8 +341,8 @@
  assign Int = ISR.Ev2DS | ISR.Ev1DS | ISR.Ev0DS | ISR.CMdw | ISR.CMup | ISR.OMdw | ISR.PMup; 
  
  //Low Pass Filter for Event 0 - 2 
- always@(posedge Clk) begin
-	if (Rst) begin
+ always@(posedge CPUbus.HCLK) begin
+	if (!CPUbus.HRESETn) begin
 		Evnt0LPF	<= 0;
 		Evnt1LPF	<= 0;
 		Evnt2LPF	<= 0;
@@ -380,8 +399,8 @@
  end     
  
  //Configures the edge or level 
- always@(posedge Clk) begin
-	if(Rst) begin
+ always@(posedge CPUbus.HCLK) begin
+	if(!CPUbus.HRESETn) begin
 		Evnt0Edg <= 0;
 		Evnt1Edg <= 0;
 		Evnt2Edg <= 0;
@@ -451,12 +470,22 @@
 			     (CMC.CapS0 == 1)? Evnt0Edg :
 			     (CMC.CapS0 == 2)? Evnt1Edg :
 			     (CMC.CapS0 == 3)? Evnt2Edg : 0;
-				
+
  assign EvCap1 = (CMC.CapS1 == 0)?  0 :
 			     (CMC.CapS1 == 1)? Evnt0Edg :
 			     (CMC.CapS1 == 2)? Evnt1Edg :
 			     (CMC.CapS1 == 3)? Evnt2Edg : 0;				
 
+ assign EvCntCapS0 = (CMC.CntCapS0 == 0)?  0 :
+					 (CMC.CntCapS0 == 1)? Evnt0Edg :
+					 (CMC.CntCapS0 == 2)? Evnt1Edg :
+					 (CMC.CntCapS0 == 3)? Evnt2Edg : 0;
+
+ assign EvCntCapS1 = (CMC.CntCapS1 == 0)?  0 :
+					 (CMC.CntCapS1 == 1)? Evnt0Edg :
+					 (CMC.CntCapS1 == 2)? Evnt1Edg :
+					 (CMC.CntCapS1 == 3)? Evnt2Edg : 0;
+				
  assign EvUpDw = (CMC.UpDwS == 0)?  0 :
 			     (CMC.UpDwS == 1)? Evnt0Lvl :
 			     (CMC.UpDwS == 2)? Evnt1Lvl :
@@ -478,8 +507,8 @@
 				(CMC.CntS != 0)? EvCnt  : 1; //External Count enabled
 
 
- always@ (posedge Clk) begin
-	if(Rst) begin
+ always@ (posedge CPUbus.HCLK) begin
+	if(!CPUbus.HRESETn) begin
 		TRSt.bit31_2 <= 0;	
 		TRSt.TR 	 <= 0;		
 		TmVal 		 <= 0;
@@ -527,7 +556,7 @@
 		end 
 		
 		//PWM output generation (compare mode)
-		for (i = 0; i < bwPWM; i++) begin
+		for (i = 0; i < PWM_SIZE; i++) begin
 			if(TRSt.TR) begin
 				if(pwmStp[i]) begin // modulation event is used to clear
 					pwmOut[i] = 0; 
@@ -572,7 +601,7 @@
  //OUTPUT	
  generate
 	genvar z;
-	for (z = 0; z < bwPWM; z++) begin
+	for (z = 0; z < PWM_SIZE; z++) begin :PWMout
 		assign PWM[z] = (PLC.OPL[z])? !pwmOut[z] : pwmOut[z];	
 	end
  endgenerate
