@@ -60,7 +60,7 @@ Purpose : Generic application start
 *   Application entry point.
 */
 uint32_t x,i;
-uint8_t messege[] = "Super Puper Word";
+uint8_t messege[] = "Super Puper Word!!! ";
 
 void
 handle_UART_interrupt()
@@ -85,7 +85,6 @@ void
 handle_TIMER_interrupt(unsigned ticks)
 {
    //Write period val
- Timer_REG(dTmPr)   = ticks;
  Timer_REG(dTmPrSh) = ticks;
 
  //Set Timer Run Bit
@@ -112,40 +111,50 @@ handle_trap(uintptr_t mcause, uintptr_t epc)
 }
 
 uint8_t CR;
-uint32_t TMS;
 
+void init_timer(void) {
+  uint32_t TMS;
+  uint32_t CMC;
+  uint32_t ECR;
 
-void main(void) {
- 
- uint32_t i;
+  Timer_REG(dTmPrSh) = 0xff;
 
- //UART initialization
- CR = 0;
- CR = CR | 0x01;  //Set Odd parity
- //CR = CR | (1'b1 << 3); //set Rx Data Available Interrupt
- //CR = CR | (0x1 << 4); //set Tx Empty Interrupt
- //CR = CR | (0x1 << 5); //set Rx Error Status Interrupt
- //CR = CR | (1'b1 << 6); //Internal Loop TX to RX
+  //Set Timer mode
+  TMS = 0; //Set TCM Center aligned mode
+  TMS = TMS | (0x1 << 2); //Capture Compare Mode
+  TMS = TMS | (0x1 << 9); //Capture Compare Mode
+  Timer_REG(dTMS) = TMS; 
 
- UART0_REG(dCR_UART) = CR; //Set Odd parity
- UART0_REG(dDLL_UART) = BR921600; //Set 
+ //Connection Matrix Control
+  CMC = 0;
+  CMC = CMC | (0x1 << 4); //External Capture 0 Func??on triggered by Event 0
+  CMC = CMC | (0x2 << 6); //External Capture 1 Func??on triggered by Event 1
+  Timer_REG(dCMC) = CMC;
 
- //Timer initialization
-   //Write period val
- Timer_REG(dTmPr)   = 0xfffff;
- Timer_REG(dTmPrSh) = 0xfffff;
-
- //Set Timer mode
- TMS = 0; //Set TCM Center aligned mode
- TMS = TMS | (0x1 << 1); //Single shot mode
- Timer_REG(dTMS) = TMS; 
-
+ //Connection Matrix Control
+  ECR = 1; // Event 0 Edge Selection on rising edge
+  ECR = ECR | (0x1 << 2); // Event 1 Edge Selection on rising edge
+  Timer_REG(dECR) = ECR;
 
   //Set Interrupt 
   Timer_REG(dIEC) =  0x1; //Period match
-	
-  //Set Timer Run Bit
-  Timer_REG(dTRS) = 0x1;
+
+}
+
+void init_timer1(void) {
+  uint32_t TMS;
+
+  //set PWM out
+  Timer1_REG(dTmPrSh)   = 0xff;
+  Timer1_REG(dTmCmpSh)  = 0x7f;
+  Timer1_REG(dTmCmpSh1) = 0x60;
+
+  //Set Timer mode
+  TMS = 0; //Set TCM Center aligned mode
+  Timer1_REG(dTMS) = TMS; 
+}
+
+void init_intrupt(void) {
 
   // Clear interrupts
   clear_csr(mie, MIP_MSIP);
@@ -157,9 +166,38 @@ void main(void) {
 
   // Enable interrupts in general.
   set_csr(mstatus, MSTATUS_MIE);
+}
+
+void init_UART(void) {
+  //UART initialization
+  CR = 0;
+  CR = CR | 0x01;  //Set Odd parity
+ //CR = CR | (1'b1 << 3); //set Rx Data Available Interrupt
+ //CR = CR | (0x1 << 4); //set Tx Empty Interrupt
+ //CR = CR | (0x1 << 5); //set Rx Error Status Interrupt
+ //CR = CR | (1'b1 << 6); //Internal Loop TX to RX
+
+  UART0_REG(dCR_UART) = CR; //Set Odd parity
+  UART0_REG(dDLL_UART) = BR921600; //Set 
+
+}
+
+void main(void) {
+ 
+ uint32_t i;
+
+
+ //Timer initialization
+  init_timer();
+  init_timer1();
+  init_intrupt();
+  init_UART();
+	
+  //Run Timer's 
+  Timer_REG(dTRS)  = 0x1;
+  Timer1_REG(dTRS) = 0x1;
 
   //Send Hello word 
-
  int32_t f = strlen(messege);
  for(i = 0; i < f; i++) UART0_REG(dFIFOtx_UART) = messege[i]; //strlen(messege)
 

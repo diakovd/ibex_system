@@ -1,24 +1,28 @@
 #ifndef _IBEX_CORE_TIMER_H
 #define _IBEX_CORE_TIMER_H 
  
- #define dTmVal 	 0x0
- #define dTmPr  	 0x4
- #define dTmPrSh 	 0x8
- #define dTmCmp 	 0xC
- #define dTmCmpSh	 0x10
- #define dTmCap0	 0x14
- #define dTmCap1	 0x18
- #define dTmCap2	 0x1C
- #define dTmCap3	 0x20
- #define dTRS 		 0x24
- #define dTCFS 		 0x28
- #define dTRSt 		 0x2C
- #define dTMS 		 0x30
- #define dECR 		 0x34
- #define dCMC 		 0x38
- #define dISR 		 0x3C
- #define dIEC 		 0x40
- #define dISC 		 0x44
- #define dPLC		 0x48
+ #define dTRS 		0x0
+ #define dTCFS 		0x4
+ #define dTRSt 		0x8
+ #define dTMS 		0xC
+ #define dECR 		0x10
+ #define dCMC 		0x14
+ #define dISR 		0x18
+ #define dIEC 		0x1C
+ #define dISC 		0x20
+ #define dPLC		0x24
+ #define dTmVal 	0x28
+ #define dTmPr  	0x2C
+ #define dTmPrSh 	0x30
+ #define dTmCap0	0x34
+ #define dTmCap1	0x38
+ #define dTmCap2	0x3C
+ #define dTmCap3	0x40
+ #define dTmC1mC0       0x44
+ #define dTmC3mC2       0x48
+ #define dTmCmp 	0x4C
+ #define dTmCmpSh	0x50
+ #define dTmCmp1 	0x54
+ #define dTmCmpSh1	0x58
 
  #endif /* _IBEX_CORE_TIMER_H */
