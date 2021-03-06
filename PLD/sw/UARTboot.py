@@ -60,4 +60,7 @@ for i in range(0,32):
 
 fd.close()    
 ser.close()         # close port
+<<<<<<< HEAD
 print("program.hex loaded")
+=======
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945

@@ -2,14 +2,18 @@
 //						mem_scoreboard - www.verificationguide.com 
 //-------------------------------------------------------------------------
 
+<<<<<<< HEAD
 `uvm_analysis_imp_decl(_bus)
 `uvm_analysis_imp_decl(_ex_bus)
 
+=======
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
 class tm_scoreboard extends uvm_scoreboard;
   
   //---------------------------------------
   // declaring pkt_qu to store the pkt's recived from monitor
   //---------------------------------------
+<<<<<<< HEAD
   tm_seq_item 		pkt_bus[$];
   tm_ex_seq_item 	pkt_ex_bus[$];
   
@@ -29,6 +33,19 @@ class tm_scoreboard extends uvm_scoreboard;
   //---------------------------------------
   uvm_analysis_imp_bus#(tm_seq_item,    tm_scoreboard)    bus_collected_export;
   uvm_analysis_imp_ex_bus#(tm_ex_seq_item, tm_scoreboard) ex_bus_collected_export;
+=======
+  tm_seq_item pkt_qu[$];
+  
+  //---------------------------------------
+  // sc_tm 
+  //---------------------------------------
+  bit [7:0] sc_tm [4];
+
+  //---------------------------------------
+  //port to recive packets from monitor
+  //---------------------------------------
+  uvm_analysis_imp#(tm_seq_item, tm_scoreboard) item_collected_export;
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
   `uvm_component_utils(tm_scoreboard)
 
   //---------------------------------------
@@ -42,14 +59,20 @@ class tm_scoreboard extends uvm_scoreboard;
   //---------------------------------------
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
+<<<<<<< HEAD
       bus_collected_export    = new("bus_collected_export", this);
       ex_bus_collected_export = new("ex_bus_collected_export", this);
       //foreach(sc_tm[i]) sc_tm[i] = 8'hFF;
+=======
+      item_collected_export = new("item_collected_export", this);
+      foreach(sc_tm[i]) sc_tm[i] = 8'hFF;
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
   endfunction: build_phase
   
   //---------------------------------------
   // write task - recives the pkt from monitor and pushes into queue
   //---------------------------------------
+<<<<<<< HEAD
   virtual function void write_bus(tm_seq_item pkt);
     //pkt.print();
     pkt_bus.push_back(pkt);
@@ -59,12 +82,19 @@ class tm_scoreboard extends uvm_scoreboard;
     //pkt.print();
     pkt_ex_bus.push_back(pkt);
   endfunction : write_ex_bus
+=======
+  virtual function void write(tm_seq_item pkt);
+    //pkt.print();
+    pkt_qu.push_back(pkt);
+  endfunction : write
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
 
   //---------------------------------------
   // run_phase - compare's the read data with the expected data(stored in local memory)
   // local memory will be updated on the write operation.
   //---------------------------------------
   virtual task run_phase(uvm_phase phase);
+<<<<<<< HEAD
   
 	fork
 		rx_pkt_bus();
@@ -134,4 +164,35 @@ class tm_scoreboard extends uvm_scoreboard;
 	end
   endtask : rx_pkt_ex_bus
     
+=======
+    tm_seq_item tm_pkt;
+    
+    forever begin
+      wait(pkt_qu.size() > 0);
+      tm_pkt = pkt_qu.pop_front();
+      
+      if(tm_pkt.wr_en) begin
+        sc_tm[tm_pkt.addr] = tm_pkt.wdata;
+        `uvm_info(get_type_name(),$sformatf("------ :: WRITE DATA       :: ------"),UVM_LOW)
+        `uvm_info(get_type_name(),$sformatf("Addr: %0h",tm_pkt.addr),UVM_LOW)
+        `uvm_info(get_type_name(),$sformatf("Data: %0h",tm_pkt.wdata),UVM_LOW)
+        `uvm_info(get_type_name(),"------------------------------------",UVM_LOW)        
+      end
+      else if(tm_pkt.rd_en) begin
+        if(sc_tm[tm_pkt.addr] == tm_pkt.rdata) begin
+          `uvm_info(get_type_name(),$sformatf("------ :: READ DATA Match :: ------"),UVM_LOW)
+          `uvm_info(get_type_name(),$sformatf("Addr: %0h",tm_pkt.addr),UVM_LOW)
+          `uvm_info(get_type_name(),$sformatf("Expected Data: %0h Actual Data: %0h",sc_tm[tm_pkt.addr],tm_pkt.rdata),UVM_LOW)
+          `uvm_info(get_type_name(),"------------------------------------",UVM_LOW)
+        end
+        else begin
+          `uvm_error(get_type_name(),"------ :: READ DATA MisMatch :: ------")
+          `uvm_info(get_type_name(),$sformatf("Addr: %0h",tm_pkt.addr),UVM_LOW)
+          `uvm_info(get_type_name(),$sformatf("Expected Data: %0h Actual Data: %0h",sc_tm[tm_pkt.addr],tm_pkt.rdata),UVM_LOW)
+          `uvm_info(get_type_name(),"------------------------------------",UVM_LOW)
+        end
+      end
+    end
+  endtask : run_phase
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
 endclass : tm_scoreboard

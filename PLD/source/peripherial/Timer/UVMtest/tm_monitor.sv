@@ -50,7 +50,11 @@ class tm_monitor extends uvm_monitor;
 	  if(vif.monitor_cb.HTRANS == HTRANS_NONSEQ) begin
 		  trans_collected.addr = vif.monitor_cb.HADDR;
 		  if(vif.monitor_cb.HWRITE) begin
+<<<<<<< HEAD
 			trans_collected.cmd  = vif.monitor_cb.HWRITE;
+=======
+			trans_collected.cmd = vif.monitor_cb.HWRITE;
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
 			trans_collected.data = vif.monitor_cb.HWDATA;
 		  end
 		  if(!vif.monitor_cb.HWRITE) begin

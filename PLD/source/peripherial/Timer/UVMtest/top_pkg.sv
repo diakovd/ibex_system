@@ -26,6 +26,7 @@ package top_pkg;
   `include "tm_driver.sv"
   `include "tm_ex_driver.sv"
   `include "tm_monitor.sv"
+<<<<<<< HEAD
   `include "tm_ex_monitor.sv"
   `include "tm_sequencer.sv"
 //  `include "bus_coverage.sv"
@@ -35,6 +36,15 @@ package top_pkg;
   `include "reg2bus_adapter.sv"
 //  `include "bus_env_coverage.sv"
   `include "tm_scoreboard.sv"
+=======
+  `include "tm_sequencer.sv"
+//  `include "bus_coverage.sv"
+  `include "tm_agent.sv"
+  `include "tm_ex_agent.sv"
+  //`include "bus_seq_lib.sv"
+  `include "reg2bus_adapter.sv"
+//  `include "bus_env_coverage.sv"
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
   `include "tm_env.sv"
   `include "wr_rd_regmodel_seq.sv"
   `include "tm_ex_sequence.sv"

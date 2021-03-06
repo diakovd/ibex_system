@@ -24,6 +24,7 @@
  #define dTmCmpSh	0x50
  #define dTmCmp1 	0x54
  #define dTmCmpSh1	0x58
+<<<<<<< HEAD
  
  //Interrupt Enable/Clear/Status bit
  #define tm_PMup 0x1
@@ -35,5 +36,7 @@
  #define tm_Ev2DS 0x40
 
  //Event control register bit
+=======
+>>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
 
  #endif /* _IBEX_CORE_TIMER_H */
