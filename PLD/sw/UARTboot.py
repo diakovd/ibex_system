@@ -45,12 +45,13 @@ ser.write(numb)
     
 #send .hex
 for line in fd:
-    print(line)
+    #print(line)
     i = 0
     while(i < len(line)-1) :
         dat = bytearray.fromhex(line[i:i + 8])
         i = i + 9
         dat.reverse()
+        #print(dat.hex())
         ser.write(dat)
 
 #Clear Reset of system
@@ -59,3 +60,4 @@ for i in range(0,32):
 
 fd.close()    
 ser.close()         # close port
+print("program.hex loaded")

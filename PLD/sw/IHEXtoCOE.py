@@ -27,7 +27,7 @@ for line in fr:
         if n % 8 != 0:
             count = 9 + n + (8 - (n % 8))
             line = line[:-3]
-            for i in range(n,8):    
+            for i in range(n % 8,8):
                 line = line + "0" 
             print(line) 
         

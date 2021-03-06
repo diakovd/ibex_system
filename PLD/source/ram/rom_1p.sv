@@ -3,7 +3,6 @@
  */
 `define SRAM_INIT_FILE
 `include "../source/defines.sv"
-`timescale 1ps/1ps
 
 module rom_1p #(
     parameter VENDOR = "Xilinx", //optional "IntelFPGA" , "Simulation", "Xilinx" 
@@ -28,7 +27,7 @@ module rom_1p #(
 
  wire rsta_busy;
 
- logic [31:0] addr_idx;
+ logic [Aw-1:0] addr_idx;
  logic req_idx;
  logic we_idx;
  logic [3:0] be_idx;
@@ -58,7 +57,7 @@ if(VENDOR == "Simulation")begin
         if (RAM_DatBus.be[2] == 1'b1) mem[RAM_DatBus.addr[Aw-1+2:2]][23:16] <=  RAM_DatBus.wdata[23:16];
         if (RAM_DatBus.be[3] == 1'b1) mem[RAM_DatBus.addr[Aw-1+2:2]][31:24] <=  RAM_DatBus.wdata[31:24];
 	end
-	rdata_idx <= mem[addr_idx[Aw-1+2:0]];
+	rdata_idx <= mem[addr_idx[Aw-1:0]];
 	RAM_CtrBus.rdata <= mem[RAM_DatBus.addr[Aw-1+2:2]];
   end
 
@@ -124,9 +123,9 @@ end
 else if(VENDOR == "IntelFPGA")begin
 
  RAMdp RAM_inst(
-	.address_a(addr_idx[Aw-1+2:0]),
+	.address_a(addr_idx),
 	.data_a(wdata_idx),
-	.wren_a((RstBoot)? BootCtr.req & BootCtr.we : CPUCtr.req & CPUCtr.we),
+	.wren_a((RstBoot)? BootCtr.req & BootCtr.we : 1'b0),
 	.byteena_a((RstBoot)? BootDat.be :  CPUdat.be),
 	.q_a(rdata_idx),
 	.address_b(RAM_DatBus.addr[Aw-1+2:2]),

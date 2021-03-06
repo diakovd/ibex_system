@@ -1,5 +1,7 @@
- `include "../source/defines.sv"
- `include "../source/peripherial/uart_module/defUART.v"
+`include "../source/defines.sv"
+`include "../source/peripherial/uart_module/defUART.v"
+ // `include "defines.sv"
+ // `include "defUART.v"
  
  //synthesis translate_off 
  // synthesis translate_on
@@ -17,7 +19,7 @@
 	input Clk_14MHz 
  );
   
-  parameter string VENDOR = "Xilinx"; //optional "IntelFPGA"
+  parameter VENDOR = "Xilinx"; //optional "IntelFPGA"
   parameter int addrBase = 0;
 
  CONTROL_REGISTER CR;
@@ -103,7 +105,7 @@ logic TxFlush;
  fsm_state state_tx;
 
  typedef enum{
-  idle_rx, st1_rx, st2_rx, st2_2rx, st_Break_rx
+  idle_rx = 1, st1_rx = 2, st2_rx = 3, st2_2rx = 4, st_Break_rx  = 5
   } fsm_state_rx; 
  fsm_state_rx state_rx;
 
@@ -130,7 +132,7 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
 		FCR.RxClear <= 0;
 		FCR.TxEmpty <= 0;
 		ISR  <= 0;	
-		DLR  <= 0;
+		DLR  <= `BR9600;
 		RxFlush <= 0;
 		TxFlush <= 0;
 		ESR		<= 0;
@@ -149,7 +151,7 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
 			FCR.RxClear <= 0;
 		end
 		if (wr & addr == `defU_DLL)  DLR[7:0]  <= wrdata;
-		if (wr & addr == `defU_DLH)  DLR[15:0] <= wrdata;
+		if (wr & addr == `defU_DLH)  DLR[15:8] <= wrdata;
 	
 		if(FCR.TxClear) ctr_TxFlush <= 3'b111;
 		else if(ctr_TxFlush > 0) begin
@@ -216,7 +218,7 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
 		else if(rd & addr == `defU_ISR)          ISR.ErrInt <= 0;	
 		
 		CPUctr.rvalid <= CPUctr.req;
-	    CPUctr.gnt <= CPUctr.req;
+	    CPUctr.gnt <= CPUctr.req;  
 	end
  end
 
@@ -250,27 +252,22 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
  
 generate
 if(VENDOR == "Xilinx") begin
-// synthesis read_comments_as_HDL on
-// FIFOa fifo_tx_inst(
-// synthesis read_comments_as_HDL off
 
-//synthesis translate_off 
- asinhFIFOa_sim fifo_tx_inst(
-// synthesis translate_on
+ FIFOa fifo_tx_inst(
   .din(wrdata),
   .wr_en(wr & addr == `defU_FIFOtx),
   .wr_clk(Clk),
   .full(FCR.TxFull),
-  .wr_data_count(TxCnt),
-  .rst(Rst | TxFlush),
+  .wr_data_count(TxCnt[7:0]),
+  .wr_rst(Rst | TxFlush),
 
   .dout(dout_tx),
   .rd_en(rd_tx),
   .rd_clk(Clk_14MHz),
   .empty(empty_tx),
-  .rd_data_count()
+  .rd_data_count(),
+  .rd_rst(Rst | TxFlush)
 ); 
-
 end
 else if(VENDOR == "IntelFPGA") begin
  FIFOa fifo_tx_inst (
@@ -288,7 +285,25 @@ else if(VENDOR == "IntelFPGA") begin
 	.rdusedw ( )
 	);
 end
+else if(VENDOR == "Simulation") begin
+
+ asinhFIFOa_sim fifo_tx_inst(
+  .din(wrdata),
+  .wr_en(wr & addr == `defU_FIFOtx),
+  .wr_clk(Clk),
+  .full(FCR.TxFull),
+  .wr_data_count(TxCnt),
+  .rst(Rst | TxFlush),
+
+  .dout(dout_tx),
+  .rd_en(rd_tx),
+  .rd_clk(Clk_14MHz),
+  .empty(empty_tx),
+  .rd_data_count()
+ ); 
+end
 endgenerate
+
  // assign DatL = (LCR[`defU_DatL] == 0)? 4'h5: 
 			   // (LCR[`defU_DatL] == 1)? 4'h6:
 		       // (LCR[`defU_DatL] == 2)? 4'h7:
@@ -401,25 +416,21 @@ endgenerate
 
 generate
 if(VENDOR == "Xilinx") begin
-// synthesis read_comments_as_HDL on
-// FIFOa fifo_rx_inst(
-// synthesis read_comments_as_HDL off
 
-//synthesis translate_off 
- asinhFIFOa_sim fifo_rx_inst(
-// synthesis translate_on
+ FIFOa fifo_tx_inst(
   .din(shiftIN),
   .wr_en(wr_rx),
   .wr_clk(Clk_14MHz),
   .full(full_rx),
   .wr_data_count(),
-  .rst(Rst | RxFlush),
+  .wr_rst(Rst | RxFlush),
 
   .dout(dout_rx),
   .rd_en(rd & addr == `defU_FIFOrx),
   .rd_clk(Clk),
   .empty(FCR.RxEmpty),
-  .rd_data_count(RxCnt)
+  .rd_data_count(RxCnt[7:0]),
+  .rd_rst(Rst | RxFlush)
 ); 
 end
 else if(VENDOR == "IntelFPGA") begin
@@ -435,8 +446,24 @@ else if(VENDOR == "IntelFPGA") begin
 	.rdreq ( rd & addr == `defU_FIFOrx ),
 	.rdclk ( Clk ),
 	.rdempty ( FCR.RxEmpty ),
-	.rdusedw ( RxCnt )
+	.rdusedw ( RxCnt[7:0])
 	);
+end
+else if(VENDOR == "Simulation") begin
+ asinhFIFOa_sim fifo_rx_inst(
+  .din(shiftIN),
+  .wr_en(wr_rx),
+  .wr_clk(Clk_14MHz),
+  .full(full_rx),
+  .wr_data_count(),
+  .rst(Rst | RxFlush),
+
+  .dout(dout_rx),
+  .rd_en(rd & addr == `defU_FIFOrx),
+  .rd_clk(Clk),
+  .empty(FCR.RxEmpty),
+  .rd_data_count(RxCnt)
+); 
 end
 endgenerate
 
@@ -451,7 +478,7 @@ endgenerate
 		parity_rx	<= 0;
 		one_half	<= 1;
 		wr_rx		<= 0;
-		str_rx		= 0;
+		str_rx		<= 0;
 		overrunError <= 0;
 		parErr	 	<= 0;
 		StpErr	 	<= 0;
@@ -464,20 +491,20 @@ endgenerate
 		if(en_ctr_rx) begin
 			if(one_half & ctr_rx == (BaudRate - 1)) begin
 				ctr_rx 	<= 0;
-				str_rx	= 1;
+				str_rx	<= 1;
 			end
 			else if(!one_half & ctr_rx == (BaudRate*2 - 1)) begin
 				ctr_rx 	<= 0;
-				str_rx	= 1;
+				str_rx	<= 1;
 			end
 			else begin
 				ctr_rx <= ctr_rx + 1;
-				str_rx = 0;
+				str_rx <= 0;
 			end	
 		end
 		else begin
 			ctr_rx 	<= 0;
-			str_rx	= 0;
+			str_rx	<= 0;
 		end
 	
 		case(state_rx)
@@ -486,6 +513,7 @@ endgenerate
 					en_ctr_rx 	<= 1;
 					state_rx 	<= st1_rx;
 				end
+				else en_ctr_rx 	<= 0;
 				wr_rx 	  <= 0;
 				parity_rx <= 0;
 				one_half  <= 1;
@@ -506,6 +534,7 @@ endgenerate
 					end
 					BreakInd <= BreakInd | RXsig;
 				end
+				else en_ctr_rx 	<= 1;
 			end
 
 			st2_rx: begin 
@@ -540,6 +569,7 @@ endgenerate
 					end
 					BreakInd <= BreakInd | RXsig;
 				end
+				else en_ctr_rx 	<= 1;
 			end
 			
 			st2_2rx: begin
@@ -555,6 +585,7 @@ endgenerate
 						else state_rx <= idle_rx;						
 					end
 				end
+				else en_ctr_rx 	<= 1;
 			end
 			
 			st_Break_rx: begin
@@ -562,9 +593,9 @@ endgenerate
 					BreakErr <= 0;
 					state_rx <= idle_rx;	
 				end
-				else BreakErr <= 1;
+				else BreakErr <= 1;  
 			end
-			default:;
+			default: state_rx 	<= idle_rx; 
 		endcase
 	end
  end

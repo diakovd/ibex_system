@@ -17,7 +17,8 @@
 // 460800 BaudRate = 16
 // 921600 BaudRate = 8
 
- `include "../source/defines.sv"
+`include "../source/defines.sv"
+// `include "defines.sv"
 
  module BootLoader(
 	input RX, //RX UART line
@@ -234,7 +235,7 @@
 		parity_rx	<= 0;
 		one_half	<= 1;
 		wr_rx		<= 0;
-		str_rx		= 0;
+		str_rx		<= 0;
 		parErr	 	<= 0;
 		StpErr	 	<= 0;
 		BreakInd	<= 0;
@@ -246,20 +247,20 @@
 		if(en_ctr_rx) begin
 			if(one_half & ctr_rx == (BaudRate - 1)) begin
 				ctr_rx 	<= 0;
-				str_rx	= 1;
+				str_rx	<= 1;
 			end
 			else if(!one_half & ctr_rx == (BaudRate*2 - 1)) begin
 				ctr_rx 	<= 0;
-				str_rx	= 1;
+				str_rx	<= 1;
 			end
 			else begin
 				ctr_rx <= ctr_rx + 1;
-				str_rx = 0;
+				str_rx <= 0;
 			end	
 		end
 		else begin
 			ctr_rx 	<= 0;
-			str_rx	= 0;
+			str_rx	<= 0;
 		end
 	
 		case(state_rx)
@@ -268,6 +269,7 @@
 					en_ctr_rx 	<= 1;
 					state_rx 	<= st1_rx;
 				end
+				else en_ctr_rx 	<= 0;
 				wr_rx 	  <= 0;
 				parity_rx <= 0;
 				one_half  <= 1;
@@ -287,6 +289,7 @@
 					end
 					BreakInd <= BreakInd | RX;
 				end
+				else en_ctr_rx 	<= 1;
 			end
 
 			st2_rx: begin 
@@ -306,6 +309,7 @@
 					end
 					BreakInd <= BreakInd | RX;
 				end
+				else en_ctr_rx 	<= 1;
 			end
 			
 			st2_2rx: begin
@@ -321,6 +325,7 @@
 						else state_rx <= idle_rx;						
 					end
 				end
+				else en_ctr_rx 	<= 1;
 			end
 			
 			st_Break_rx: begin

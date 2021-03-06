@@ -17,8 +17,7 @@ class tm_model_env extends uvm_env;
   tm_agent      m_agent;
   tm_ex_agent   m_ex_agent;
 
-
-//  tm_scoreboard tm_scb;
+  tm_scoreboard tm_scb;
 //  bus_env		m_bus_env;
 
   
@@ -39,7 +38,7 @@ class tm_model_env extends uvm_env;
 
     m_agent = tm_agent::type_id::create("m_agent", this);
     m_ex_agent = tm_ex_agent::type_id::create("m_ex_agent", this);
- //   tm_scb  = tm_scoreboard::type_id::create("tm_scb", this);
+    tm_scb  = tm_scoreboard::type_id::create("tm_scb", this);
 	
 	regmodel = top_reg_block::type_id::create("regmodel");
 	regmodel.build();
@@ -56,7 +55,9 @@ class tm_model_env extends uvm_env;
   // connect_phase - connecting monitor and scoreboard port
   //---------------------------------------
   function void connect_phase(uvm_phase phase);
-    //m_agent.monitor.analysis_port.connect(tm_scb.item_collected_export);
+    m_agent.monitor.analysis_port.connect(tm_scb.bus_collected_export);
+    m_ex_agent.ex_monitor.ex_analysis_port.connect(tm_scb.ex_bus_collected_export);
+
     m_agent.monitor.analysis_port.connect(m_bus2reg_predictor.bus_in);
     
 	m_bus2reg_predictor.map = regmodel.bus_map;

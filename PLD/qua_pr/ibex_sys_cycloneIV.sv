@@ -6,7 +6,18 @@
  
 	output TX,
 	input  RX,
-//	output [31:0] LED,
+//	output [31:0] IO,
+
+	output [7:0] LEDen,
+	output	LEDA,
+	output	LEDB,
+	output	LEDC,
+	output	LEDD,
+	output	LEDE,
+	output	LEDF,
+	output	LEDG,
+	output	LEDDP,
+
     input Clk,
     input   sys_rst_n	 
  );
@@ -17,7 +28,7 @@
  logic 		Clk_sys;
  wire       Rstn;
 
- wire [31:0] LED;
+ wire [31:0] IO;
  
 generate
 
@@ -48,7 +59,22 @@ endgenerate
  ibex_sys_inst(
     .TX(TX),
     .RX(RX),
-	.LED(LED),
+	
+	.IO(IO),
+
+	.LEDen(LEDen),
+	.LEDA(LEDA),
+	.LEDB(LEDB),
+	.LEDC(LEDC),
+	.LEDD(LEDD),
+	.LEDE(LEDE),
+	.LEDF(LEDF),
+	.LEDG(LEDG),
+	.LEDDP(LEDDP),	
+	
+	.PWM(),
+	.Evnt(),	
+	
 	.rst_sys_n(sys_rst_n),
 	.Clk_14_7456MHz(Clk_14_7456MHz),
 	.clk_sys(Clk_sys)

@@ -1,18 +1,25 @@
 `ifndef IBEXSIS_DEFINES_H
 `define IBEXSIS_DEFINES_H
 
+//`timescale 1 ps / 1 ps
+//`timescale 	1 ns / 1 ns
+ `define tm_scale 	1
+
 
  //adsress defintion
- `define addrBASE_RAM  		32'h1000
+ `define addrBASE_RAM  		32'h3000
  `define size_RAM			32'h1000
  `define addrBASE_IOmodule 	(`addrBASE_RAM + `size_RAM)
- `define size_IOmodule 		32'h00004
+ `define size_IOmodule 		32'h0000C
 
  `define addrBASE_UART0  (`addrBASE_IOmodule + `size_IOmodule)
- `define size_UART0 	   32'h00010
+ `define size_UART0 	   32'h00014
 
  `define addrBASE_Timer (`addrBASE_UART0 + `size_UART0)
- `define size_Timer 	   32'h00020
+ `define size_Timer 	   32'h00060
+
+ `define addrBASE_Timer1 (`addrBASE_Timer + `size_Timer)
+ `define size_Timer1 	   32'h00060
 
 
  // interface defintion
