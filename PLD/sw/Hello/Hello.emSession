@@ -67,12 +67,12 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="43" y="124" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="Source/main.c" selected="1" top="113" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="28" y="16" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ibex_core_pkg/ibex_core.h" selected="0" top="33" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="20" y="11" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ibex_core_pkg/devices/UART.h" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="14" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="Setup/flash_placement_riscv.xml" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="124" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="Source/main.c" selected="1" top="173" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="16" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ibex_core_pkg/ibex_core.h" selected="0" top="44" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="11" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ibex_core_pkg/devices/UART.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="60" y="18" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="Setup/flash_placement_riscv.xml" selected="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="176" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="riscv_crt0.s" selected="0" top="156" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="20" y="7" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ibex_core_pkg/devices/Timer.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="7" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="ibex_core_pkg/devices/Timer.h" selected="0" top="0" codecName="Default"/>
  </Files>
  <RISCVCrossStudioWindow activeProject="Hello" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="Simulator" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="C:/Users/dyakov/Documents/SEGGER Embedded Studio for RISC-V Projects/Hello/Setup" debugSearchPath="" autoConnectCapabilities="4543"/>
 </session>
