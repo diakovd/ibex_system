@@ -1,14 +1,14 @@
 -- Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2018.3_AR72010 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
--- Date        : Tue Dec 15 14:55:13 2020
--- Host        : Dyakov running 64-bit major release  (build 9200)
+-- Date        : Sun Mar 27 12:58:28 2022
+-- Host        : DT running 64-bit major release  (build 9200)
 -- Command     : write_vhdl -force -mode funcsim
---               d:/Work/test_pr/ibex_system-main/PLD/VIVpr/ibex_system.srcs/sources_1/ip/PLL/PLL_sim_netlist.vhdl
+--               C:/pr/ibex-sys/PLD/VIVpr/ibex_system.srcs/sources_1/ip/PLL/PLL_sim_netlist.vhdl
 -- Design      : PLL
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.
--- Device      : xc7a15tcpg236-1
+-- Device      : xc7z020clg400-1
 -- --------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -17,6 +17,7 @@ use UNISIM.VCOMPONENTS.ALL;
 entity PLL_PLL_clk_wiz is
   port (
     clk_out1 : out STD_LOGIC;
+    clk_out2 : out STD_LOGIC;
     reset : in STD_LOGIC;
     clk_in1 : in STD_LOGIC
   );
@@ -27,13 +28,13 @@ end PLL_PLL_clk_wiz;
 architecture STRUCTURE of PLL_PLL_clk_wiz is
   signal clk_in1_PLL : STD_LOGIC;
   signal clk_out1_PLL : STD_LOGIC;
+  signal clk_out2_PLL : STD_LOGIC;
   signal clkfbout_PLL : STD_LOGIC;
   signal clkfbout_buf_PLL : STD_LOGIC;
   signal NLW_mmcm_adv_inst_CLKFBOUTB_UNCONNECTED : STD_LOGIC;
   signal NLW_mmcm_adv_inst_CLKFBSTOPPED_UNCONNECTED : STD_LOGIC;
   signal NLW_mmcm_adv_inst_CLKINSTOPPED_UNCONNECTED : STD_LOGIC;
   signal NLW_mmcm_adv_inst_CLKOUT0B_UNCONNECTED : STD_LOGIC;
-  signal NLW_mmcm_adv_inst_CLKOUT1_UNCONNECTED : STD_LOGIC;
   signal NLW_mmcm_adv_inst_CLKOUT1B_UNCONNECTED : STD_LOGIC;
   signal NLW_mmcm_adv_inst_CLKOUT2_UNCONNECTED : STD_LOGIC;
   signal NLW_mmcm_adv_inst_CLKOUT2B_UNCONNECTED : STD_LOGIC;
@@ -56,6 +57,7 @@ architecture STRUCTURE of PLL_PLL_clk_wiz is
   attribute IFD_DELAY_VALUE : string;
   attribute IFD_DELAY_VALUE of clkin1_ibufg : label is "AUTO";
   attribute BOX_TYPE of clkout1_buf : label is "PRIMITIVE";
+  attribute BOX_TYPE of clkout2_buf : label is "PRIMITIVE";
   attribute BOX_TYPE of mmcm_adv_inst : label is "PRIMITIVE";
 begin
 clkf_buf: unisim.vcomponents.BUFG
@@ -76,19 +78,24 @@ clkout1_buf: unisim.vcomponents.BUFG
       I => clk_out1_PLL,
       O => clk_out1
     );
+clkout2_buf: unisim.vcomponents.BUFG
+     port map (
+      I => clk_out2_PLL,
+      O => clk_out2
+    );
 mmcm_adv_inst: unisim.vcomponents.MMCME2_ADV
     generic map(
       BANDWIDTH => "OPTIMIZED",
-      CLKFBOUT_MULT_F => 51.375000,
+      CLKFBOUT_MULT_F => 46.000000,
       CLKFBOUT_PHASE => 0.000000,
       CLKFBOUT_USE_FINE_PS => false,
-      CLKIN1_PERIOD => 67.820000,
+      CLKIN1_PERIOD => 8.000000,
       CLKIN2_PERIOD => 0.000000,
-      CLKOUT0_DIVIDE_F => 25.250000,
+      CLKOUT0_DIVIDE_F => 28.750000,
       CLKOUT0_DUTY_CYCLE => 0.500000,
       CLKOUT0_PHASE => 0.000000,
       CLKOUT0_USE_FINE_PS => false,
-      CLKOUT1_DIVIDE => 1,
+      CLKOUT1_DIVIDE => 78,
       CLKOUT1_DUTY_CYCLE => 0.500000,
       CLKOUT1_PHASE => 0.000000,
       CLKOUT1_USE_FINE_PS => false,
@@ -114,7 +121,7 @@ mmcm_adv_inst: unisim.vcomponents.MMCME2_ADV
       CLKOUT6_PHASE => 0.000000,
       CLKOUT6_USE_FINE_PS => false,
       COMPENSATION => "ZHOLD",
-      DIVCLK_DIVIDE => 1,
+      DIVCLK_DIVIDE => 5,
       IS_CLKINSEL_INVERTED => '0',
       IS_PSEN_INVERTED => '0',
       IS_PSINCDEC_INVERTED => '0',
@@ -138,7 +145,7 @@ mmcm_adv_inst: unisim.vcomponents.MMCME2_ADV
       CLKINSTOPPED => NLW_mmcm_adv_inst_CLKINSTOPPED_UNCONNECTED,
       CLKOUT0 => clk_out1_PLL,
       CLKOUT0B => NLW_mmcm_adv_inst_CLKOUT0B_UNCONNECTED,
-      CLKOUT1 => NLW_mmcm_adv_inst_CLKOUT1_UNCONNECTED,
+      CLKOUT1 => clk_out2_PLL,
       CLKOUT1B => NLW_mmcm_adv_inst_CLKOUT1B_UNCONNECTED,
       CLKOUT2 => NLW_mmcm_adv_inst_CLKOUT2_UNCONNECTED,
       CLKOUT2B => NLW_mmcm_adv_inst_CLKOUT2B_UNCONNECTED,
@@ -170,6 +177,7 @@ use UNISIM.VCOMPONENTS.ALL;
 entity PLL is
   port (
     clk_out1 : out STD_LOGIC;
+    clk_out2 : out STD_LOGIC;
     reset : in STD_LOGIC;
     clk_in1 : in STD_LOGIC
   );
@@ -183,6 +191,7 @@ inst: entity work.PLL_PLL_clk_wiz
      port map (
       clk_in1 => clk_in1,
       clk_out1 => clk_out1,
+      clk_out2 => clk_out2,
       reset => reset
     );
 end STRUCTURE;

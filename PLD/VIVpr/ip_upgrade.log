@@ -1,0 +1,79 @@
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2018.3_AR72010 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
+| Date         : Sun Mar 27 12:53:38 2022
+| Host         : DT running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-1
+--------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'RAMdp'
+
+1. Summary
+----------
+
+SUCCESS in the conversion of RAMdp (xilinx.com:ip:blk_mem_gen:8.4 (Rev. 2)) to Vivado generation flows.
+
+
+
+
+
+
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2018.3_AR72010 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
+| Date         : Sun Mar 27 12:52:23 2022
+| Host         : DT running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-1
+--------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'PLL'
+
+1. Summary
+----------
+
+SUCCESS in the conversion of PLL (xilinx.com:ip:clk_wiz:6.0 (Rev. 2)) to Vivado generation flows.
+
+
+
+
+
+
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2018.3_AR72010 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
+| Date         : Sun Mar 27 12:51:35 2022
+| Host         : DT running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-1
+--------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'ila_0'
+
+1. Summary
+----------
+
+SUCCESS in the conversion of ila_0 (xilinx.com:ip:ila:6.2 (Rev. 8)) to Vivado generation flows.
+
+
+
+
+
+
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2018.3_AR72010 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
+| Date         : Sun Mar 27 12:50:18 2022
+| Host         : DT running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-1
+--------------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'FIFOa'
+
+1. Summary
+----------
+
+SUCCESS in the conversion of FIFOa (xilinx.com:ip:fifo_generator:13.2 (Rev. 3)) to Vivado generation flows.
+

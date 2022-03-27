@@ -18,9 +18,17 @@
 	input Clk,
 	input Clk_14MHz 
  );
-  
+`ifdef Sim  
+  parameter string VENDOR = "Xilinx"; //optional "IntelFPGA"
+  parameter string BUS    = "WB"; 	// bus protocol: "WB" - wishbone bus
+									// 				 "OBI" - Open Bus Interface https://github.com/openhwgroup/core-v-docs/tree/master/cores/obi
+`else 
   parameter VENDOR = "Xilinx"; //optional "IntelFPGA"
-  parameter int addrBase = 0;
+  parameter  BUS    = "WB"; 	// bus protocol: "WB" - wishbone bus
+`endif									// 				 "OBI" - Open Bus Interface https://github.com/openhwgroup/core-v-docs/tree/master/cores/obi
+
+
+ parameter int addrBase = 0;
 
  CONTROL_REGISTER CR;
  FIFO_STATUS_CONTROL_REGISTER FCR;
@@ -92,6 +100,7 @@ logic [15:0] ctr_rx;
 logic [15:0] BaudRate; 
 logic [7:0]  wrdata;
 logic [31:0] addr;
+logic [31:0] addr_rd;
 logic [1:0] addr_low;
 logic [7:0] RDdata;
 logic [2:0] ctr_TxFlush;
@@ -109,25 +118,61 @@ logic TxFlush;
   } fsm_state_rx; 
  fsm_state_rx state_rx;
 
-//Bus Registers Write/Read
- assign wr = CPUctr.req & CPUctr.we & CPUctr.gnt;
- 
- assign wrdata = (CPUdat.be == 4'b0001)?  CPUdat.wdata[7:0]:
-				 (CPUdat.be == 4'b0010)?  CPUdat.wdata[15:8]:
-				 (CPUdat.be == 4'b0100)?  CPUdat.wdata[23:16]:
-				 (CPUdat.be == 4'b1000)?  CPUdat.wdata[31:24]: 8'h00;
+generate 
+if(BUS == "WB") begin
+	//Bus Registers Write/Read
+	 assign wr = CPUctr.req & CPUctr.we;
+ 	 always @(posedge Clk) rd <= CPUctr.req & !CPUctr.we;
+	 
+	 assign wrdata = (CPUdat.be == 4'b0001)?  CPUdat.wdata[7:0]:
+					 (CPUdat.be == 4'b0010)?  CPUdat.wdata[15:8]:
+					 (CPUdat.be == 4'b0100)?  CPUdat.wdata[23:16]:
+					 (CPUdat.be == 4'b1000)?  CPUdat.wdata[31:24]: 8'h00;
 
- assign addr_low = 	(CPUdat.be == 4'b0001)?  2'h0:
-					(CPUdat.be == 4'b0010)?  2'h1:
-					(CPUdat.be == 4'b0100)?  2'h2:
-					(CPUdat.be == 4'b1000)?  2'h3: 2'h0;
-					
-assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;	
-					
+	 assign addr_low = 	(CPUdat.be == 4'b0001)?  2'h0:
+						(CPUdat.be == 4'b0010)?  2'h1:
+						(CPUdat.be == 4'b0100)?  2'h2:
+						(CPUdat.be == 4'b1000)?  2'h3: 2'h0;
+						
+	assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
+	assign addr_rd = {CPUdat.addr[31 :2], addr_low} - addrBase;
+	
+	always @(posedge Clk) begin
+		CPUctr.rvalid <= CPUctr.req;
+	    CPUctr.gnt 	  <= CPUctr.req;
+	end
+end	
+else if(BUS == "OBI") begin
+	//Bus Registers Write/Read
+	assign wrdata = (CPUdat.be == 4'b0001)?  CPUdat.wdata[7:0]:	
+					(CPUdat.be == 4'b0010)?  CPUdat.wdata[15:8]:
+					(CPUdat.be == 4'b0100)?  CPUdat.wdata[23:16]:
+					(CPUdat.be == 4'b1000)?  CPUdat.wdata[31:24]: 8'h00;
+
+	assign addr_low = 	(CPUdat.be == 4'b0001)?  2'h0:
+						(CPUdat.be == 4'b0010)?  2'h1:
+						(CPUdat.be == 4'b0100)?  2'h2:
+						(CPUdat.be == 4'b1000)?  2'h3: 2'h0;
+						
+	assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
+    assign wr = CPUctr.req & CPUctr.we & CPUctr.gnt;
+	assign CPUctr.gnt = 1;
+	
+	always @(posedge Clk) rd <= CPUctr.req & !CPUctr.we & CPUctr.gnt;
+
+	always @(posedge Clk) begin
+		if(CPUctr.req & CPUctr.gnt) CPUctr.rvalid 	<= 1;
+		else 						CPUctr.rvalid 	<= 0;
+		addr_rd <= addr;
+	end
+end	
+endgenerate
+	
 //write registers
  always @(posedge Clk) begin
 	if(Rst) begin
 		CR <= 0;
+		FCR.bit_7   <= 0;
 		FCR.TxClear <= 0;
 		FCR.RxClear <= 0;
 		FCR.TxEmpty <= 0;
@@ -136,10 +181,8 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
 		RxFlush <= 0;
 		TxFlush <= 0;
 		ESR		<= 0;
-		rd 	<= 0;
 	end
 	else begin 
-		rd <= CPUctr.req & !CPUctr.we & CPUctr.gnt;
 
 		if (wr & addr == `defU_CR)  CR  <= wrdata;
 		if (wr & addr == `defU_FCR) begin
@@ -173,12 +216,12 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
 		empty_tx_m2 <= empty_tx_m1;  	
 		FCR.TxEmpty <= empty_tx_m2;
 		if(!FCR.TxEmpty & empty_tx_m2 & CR.TxInt) ISR.TxInt <= 1;
-		else if(rd & addr == `defU_ISR) 		      ISR.TxInt <= 0;	
+		else if(rd & addr_rd == `defU_ISR) 		  ISR.TxInt <= 0;	
 
 		// Rx not Empty Interrupt
 		empty_rx_del <= FCR.RxEmpty;  	
 		if(!FCR.RxEmpty & empty_rx_del & CR.RxInt) ISR.RxInt <= 1;
-		else if(rd & addr == `defU_ISR) 		       ISR.RxInt <= 0;	
+		else if(rd & addr_rd == `defU_ISR) 		   ISR.RxInt <= 0;	
 
 
 		full_rx_m  <= full_rx;  	
@@ -192,21 +235,21 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
 		overrunError_del2 <= overrunError_del1;
 		overrunError_del3 <= overrunError_del2;
 		if(!overrunError_del3 & overrunError_del2) ESR.Ovrn <= 1;
-		else if(rd & addr == `defU_ESR) 		       ESR.Ovrn <= 0;	
+		else if(rd & addr_rd == `defU_ESR)	       ESR.Ovrn <= 0;	
 		
 		//Rx Parity Error
 		parErr_del1 <= parErr;
 		parErr_del2 <= parErr_del1;
 		parErr_del3 <= parErr_del2;
-		if(!parErr_del3 & parErr_del2) ESR.Prt <= 1;
-		else if(rd & addr == `defU_ESR)    ESR.Prt <= 0;	
+		if(!parErr_del3 & parErr_del2) 		ESR.Prt <= 1;
+		else if(rd & addr_rd == `defU_ESR)  ESR.Prt <= 0;	
 		
 		//Rx Frame Error
 		StpErr_del1 <= StpErr;
 		StpErr_del2 <= StpErr_del1;
 		StpErr_del3 <= StpErr_del2;
-		if(!StpErr_del3 & StpErr_del2) ESR.Frm <= 1;
-		else if(rd & addr == `defU_ESR)    ESR.Frm <= 0;	
+		if(!StpErr_del3 & StpErr_del2) 		ESR.Frm <= 1;
+		else if(rd & addr_rd == `defU_ESR)  ESR.Frm <= 0;	
 		
 		BreakErr_m  <= BreakErr;  	
 		BreakErr_m1 <= BreakErr_m;  	
@@ -215,10 +258,7 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
 
 		StErr_del <= StErr;
 		if((!StErr_del & StErr) & CR.ErrInt) ISR.ErrInt <= 1;
-		else if(rd & addr == `defU_ISR)          ISR.ErrInt <= 0;	
-		
-		CPUctr.rvalid <= CPUctr.req;
-	    CPUctr.gnt <= CPUctr.req;  
+		else if(rd & addr_rd == `defU_ISR)   ISR.ErrInt <= 0;	
 	end
  end
 
@@ -233,22 +273,33 @@ assign addr = {CPUdat.addr[31 :2], addr_low} - addrBase;
  //Read registers
  always_comb begin
  
- 	if     (addr == `defU_FIFOrx) RDdata <= dout_rx;	
- 	else if(addr == `defU_CR)  	  RDdata <= CR;	
-	else if(addr == `defU_FCR)    RDdata <= FCR;	
-	else if(addr == `defU_TxCntL) RDdata <= TxCnt[7:0];	
-	else if(addr == `defU_TxCntH) RDdata <= TxCnt[15:8];	
-	else if(addr == `defU_RxCntL) RDdata <= RxCnt[7:0];	
-	else if(addr == `defU_RxCntH) RDdata <= RxCnt[15:8];	
-	else if(addr == `defU_ISR)    RDdata <= ISR;	
-	else if(addr == `defU_ESR)    RDdata <= ESR;	
-	else if(addr == `defU_DLL)    RDdata <= DLR[7:0];	
-	else if(addr == `defU_DLH)    RDdata <= DLR[15:8];	
+ 	if     (addr_rd == `defU_FIFOrx) RDdata <= dout_rx;	
+ 	else if(addr_rd == `defU_CR)  	 RDdata <= CR;	
+	else if(addr_rd == `defU_FCR)    RDdata <= FCR;	
+	else if(addr_rd == `defU_TxCntL) RDdata <= TxCnt[7:0];	
+	else if(addr_rd == `defU_TxCntH) RDdata <= TxCnt[15:8];	
+	else if(addr_rd == `defU_RxCntL) RDdata <= RxCnt[7:0];	
+	else if(addr_rd == `defU_RxCntH) RDdata <= RxCnt[15:8];	
+	else if(addr_rd == `defU_ISR)    RDdata <= ISR;	
+	else if(addr_rd == `defU_ESR)    RDdata <= ESR;	
+	else if(addr_rd == `defU_DLL)    RDdata <= DLR[7:0];	
+	else if(addr_rd == `defU_DLH)    RDdata <= DLR[15:8];	
 	else RDdata <= 0;
  
  end
 
+
  assign CPUctr.rdata = {RDdata,RDdata,RDdata,RDdata};
+
+ //Read registers
+ // always_comb begin
+ 
+ 	// if     (addr_rd == 0) CPUctr.rdata <= {TxCnt[7:0], FCR, CR, dout_rx};	
+ 	// else if(addr_rd == 1) CPUctr.rdata <= {ISR, RxCnt[15:8], RxCnt[7:0], TxCnt[15:8]};
+ 	// else if(addr_rd == 2) CPUctr.rdata <= {8'h00, DLR[15:8], DLR[7:0], ESR};
+ 	// else CPUctr.rdata <= 0;
+	
+ // end 
  
 generate
 if(VENDOR == "Xilinx") begin
@@ -417,7 +468,7 @@ endgenerate
 generate
 if(VENDOR == "Xilinx") begin
 
- FIFOa fifo_tx_inst(
+ FIFOa fifo_rx_inst(
   .din(shiftIN),
   .wr_en(wr_rx),
   .wr_clk(Clk_14MHz),
@@ -426,7 +477,7 @@ if(VENDOR == "Xilinx") begin
   .wr_rst(Rst | RxFlush),
 
   .dout(dout_rx),
-  .rd_en(rd & addr == `defU_FIFOrx),
+  .rd_en(rd & addr_rd == `defU_FIFOrx),
   .rd_clk(Clk),
   .empty(FCR.RxEmpty),
   .rd_data_count(RxCnt[7:0]),
@@ -443,7 +494,7 @@ else if(VENDOR == "IntelFPGA") begin
 	.aclr (Rst | RxFlush),
 
 	.q ( dout_rx ),
-	.rdreq ( rd & addr == `defU_FIFOrx ),
+	.rdreq ( rd & addr_rd == `defU_FIFOrx ),
 	.rdclk ( Clk ),
 	.rdempty ( FCR.RxEmpty ),
 	.rdusedw ( RxCnt[7:0])
@@ -459,7 +510,7 @@ else if(VENDOR == "Simulation") begin
   .rst(Rst | RxFlush),
 
   .dout(dout_rx),
-  .rd_en(rd & addr == `defU_FIFOrx),
+  .rd_en(rd & addr_rd == `defU_FIFOrx),
   .rd_clk(Clk),
   .empty(FCR.RxEmpty),
   .rd_data_count(RxCnt)

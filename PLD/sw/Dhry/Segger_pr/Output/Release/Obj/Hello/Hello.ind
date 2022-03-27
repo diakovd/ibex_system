@@ -1,0 +1,5 @@
+"Output/Release/Obj/Hello/main.o"
+"Output/Release/Obj/Hello/riscv_crt0.o"
+"C:/Program Files/SEGGER/SEGGER Embedded Studio for RISC-V 5.10b/lib/libm_rv32i.a"
+"C:/Program Files/SEGGER/SEGGER Embedded Studio for RISC-V 5.10b/lib/libc_rv32i.a"
+"C:/Program Files/SEGGER/SEGGER Embedded Studio for RISC-V 5.10b/lib/libdebugio_rv32i.a"

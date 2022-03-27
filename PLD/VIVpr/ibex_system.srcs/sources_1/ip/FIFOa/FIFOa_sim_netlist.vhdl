@@ -1,14 +1,14 @@
 -- Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2018.3_AR72010 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
--- Date        : Tue Dec 15 16:56:08 2020
--- Host        : Dyakov running 64-bit major release  (build 9200)
+-- Date        : Sun Mar 27 13:00:12 2022
+-- Host        : DT running 64-bit major release  (build 9200)
 -- Command     : write_vhdl -force -mode funcsim
---               D:/Work/test_pr/ibex_system-main/PLD/VIVpr/ibex_system.srcs/sources_1/ip/FIFOa/FIFOa_sim_netlist.vhdl
+--               C:/pr/ibex-sys/PLD/VIVpr/ibex_system.srcs/sources_1/ip/FIFOa/FIFOa_sim_netlist.vhdl
 -- Design      : FIFOa
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.
--- Device      : xc7a15tcpg236-1
+-- Device      : xc7z020clg400-1
 -- --------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -4616,7 +4616,7 @@ entity FIFOa_fifo_generator_v13_2_3 is
   attribute C_ERROR_INJECTION_TYPE_WRCH : integer;
   attribute C_ERROR_INJECTION_TYPE_WRCH of FIFOa_fifo_generator_v13_2_3 : entity is 0;
   attribute C_FAMILY : string;
-  attribute C_FAMILY of FIFOa_fifo_generator_v13_2_3 : entity is "artix7";
+  attribute C_FAMILY of FIFOa_fifo_generator_v13_2_3 : entity is "zynq";
   attribute C_FULL_FLAGS_RST_VAL : integer;
   attribute C_FULL_FLAGS_RST_VAL of FIFOa_fifo_generator_v13_2_3 : entity is 1;
   attribute C_HAS_ALMOST_EMPTY : integer;
@@ -5706,7 +5706,7 @@ architecture STRUCTURE of FIFOa is
   attribute C_ERROR_INJECTION_TYPE_WRCH : integer;
   attribute C_ERROR_INJECTION_TYPE_WRCH of U0 : label is 0;
   attribute C_FAMILY : string;
-  attribute C_FAMILY of U0 : label is "artix7";
+  attribute C_FAMILY of U0 : label is "zynq";
   attribute C_FULL_FLAGS_RST_VAL : integer;
   attribute C_FULL_FLAGS_RST_VAL of U0 : label is 1;
   attribute C_HAS_ALMOST_EMPTY : integer;

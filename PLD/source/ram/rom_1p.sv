@@ -5,7 +5,11 @@
 `include "../source/defines.sv"
 
 module rom_1p #(
-    parameter VENDOR = "Xilinx", //optional "IntelFPGA" , "Simulation", "Xilinx" 
+`ifdef Sim 
+    parameter string  VENDOR = "Xilinx", //optional "IntelFPGA" , "Simulation", "Xilinx" 
+`else 
+    parameter         VENDOR = "Xilinx", //optional "IntelFPGA" , "Simulation", "Xilinx" 
+`endif	
     parameter int Depth = 128
 ) 
 (
@@ -23,7 +27,7 @@ module rom_1p #(
 	input clk,
 	input rst_n
 );
- localparam int Aw = $clog2(Depth);
+ localparam int Aw = $clog2(Depth/4);
 
  wire rsta_busy;
 
@@ -66,7 +70,7 @@ if(VENDOR == "Simulation")begin
   
  
   `ifdef SRAM_INIT_FILE
-    localparam MEM_FILE = "../sw/program.hex";
+    localparam MEM_FILE = "../sw/Dhry/PyTools/program.hex";
     initial begin
       $display("Initializing instruction RAM from %s", MEM_FILE);
       $readmemh(MEM_FILE, mem);

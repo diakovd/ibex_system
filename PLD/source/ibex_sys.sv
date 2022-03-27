@@ -32,7 +32,13 @@
 	input clk_sys,
 	input rst_sys_n
  );
-  parameter              VENDOR    = "Simulation"; //optional "IntelFPGA" "Simulation" "Xilinx"
+ 
+`ifdef Sim 
+    parameter string  VENDOR = "Xilinx"; //optional "IntelFPGA" , "Simulation", "Xilinx" 
+`else 
+    parameter         VENDOR = "Xilinx"; //optional "IntelFPGA" , "Simulation", "Xilinx" 
+`endif	
+
   parameter int          MEM_SIZE  = 4 * 1024; // 4 kB
 
   // Instruction connection to SRAM
@@ -84,6 +90,7 @@
  CtrBus IO_CtrBus();
  CtrBus RAM_CtrBus();
  CtrBus UART0_CtrBus();
+ CtrBus mtimer_CtrBus();	
  ahb3lite_bus tm0_Bus(clk_sys,rst_sys_n);
  ahb3lite_bus tm1_Bus(clk_sys,rst_sys_n);
 
@@ -166,6 +173,7 @@
 	.RAM_CtrBus(RAM_CtrBus.Master),
 	.IO_CtrBus(IO_CtrBus.Master),
 	.UART0_CtrBus(UART0_CtrBus.Master),
+	.mtimer_CtrBus(mtimer_CtrBus.Master),
 	.tm0_Bus(tm0_Bus.master),
 	.tm1_Bus(tm1_Bus.master),
 
@@ -176,7 +184,7 @@
   // SRAM block for instruction 
   rom_1p #(
 	.VENDOR(VENDOR),
-    .Depth(MEM_SIZE / 4)
+    .Depth(MEM_SIZE)
   ) u_ram_instr
   (
 	.CPUdat(instr_DatBus.Slave),
@@ -244,6 +252,18 @@
 	
 	.Clk(clk_sys)
  );
+
+ mtimer #(
+		.addrBase(`addrBASE_mtimer)
+		)
+ mtimer_inst(
+	.CPUdat(data_DatBus.Slave),
+	.CPUctr(mtimer_CtrBus.Slave),
+	
+	.Int(Int_mtimer),
+	.Rst(!rst_sys_n),
+	.Clk(clk_sys)	
+	);	
 
  UART #(
 		.VENDOR(VENDOR),

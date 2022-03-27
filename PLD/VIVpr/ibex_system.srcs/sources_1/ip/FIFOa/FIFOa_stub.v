@@ -1,13 +1,13 @@
 // Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2018.3_AR72010 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
-// Date        : Tue Dec 15 16:56:07 2020
-// Host        : Dyakov running 64-bit major release  (build 9200)
+// Date        : Sun Mar 27 13:00:12 2022
+// Host        : DT running 64-bit major release  (build 9200)
 // Command     : write_verilog -force -mode synth_stub
-//               D:/Work/test_pr/ibex_system-main/PLD/VIVpr/ibex_system.srcs/sources_1/ip/FIFOa/FIFOa_stub.v
+//               C:/pr/ibex-sys/PLD/VIVpr/ibex_system.srcs/sources_1/ip/FIFOa/FIFOa_stub.v
 // Design      : FIFOa
 // Purpose     : Stub declaration of top-level module interface
-// Device      : xc7a15tcpg236-1
+// Device      : xc7z020clg400-1
 // --------------------------------------------------------------------------------
 
 // This empty module with port declaration file causes synthesis tools to infer a black box for IP.

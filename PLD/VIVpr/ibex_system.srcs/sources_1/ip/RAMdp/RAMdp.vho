@@ -1,4 +1,4 @@
--- (c) Copyright 1995-2020 Xilinx, Inc. All rights reserved.
+-- (c) Copyright 1995-2022 Xilinx, Inc. All rights reserved.
 -- 
 -- This file contains confidential and proprietary information
 -- of Xilinx, Inc. and is protected under U.S. and
@@ -56,12 +56,12 @@ COMPONENT RAMdp
   PORT (
     clka : IN STD_LOGIC;
     wea : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    addra : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+    addra : IN STD_LOGIC_VECTOR(12 DOWNTO 0);
     dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
     douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
     clkb : IN STD_LOGIC;
     web : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    addrb : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+    addrb : IN STD_LOGIC_VECTOR(12 DOWNTO 0);
     dinb : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
     doutb : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
   );

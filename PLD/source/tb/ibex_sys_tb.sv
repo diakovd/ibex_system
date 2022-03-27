@@ -2,12 +2,12 @@
 
 `timescale 1 ps / 1 ps
 
-//`define XilinxBoard
+`define XilinxBoard
 
  module ibex_sys_tb;
  
  parameter string VENDOR = "Simulation"; //optional "IntelFPGA", "Simulation", "Xilinx"
- parameter int    MEM_SIZE  =  4 * 2048; // 4 kB
+ parameter int    MEM_SIZE  =  32 * 1024; // 4 kB
  
  logic  Rstn = 0;
  logic 	TX;
@@ -16,7 +16,7 @@
  initial #200000 Rstn = 1; 
   
 `ifdef XilinxBoard
- logic  Clk_14_7456MHz = 0;
+ logic  Clk125 = 0;
 
  ibex_sys_atrix7 
  #(
@@ -26,11 +26,11 @@
  ibex_sys_atrix7_inst(
 	.TX(TX),
 	.RX(RX),
-	.Clk_14_7456MHz(Clk_14_7456MHz),
-    .sys_rst_n(Rstn)	 
+	.Clk125M(Clk125),
+    .Rst_n(Rstn)		 
  );
 
- always #34000 Clk_14_7456MHz <= ~Clk_14_7456MHz; 
+ always #4000 Clk125 <= ~Clk125;  
 
 `else
  logic Clk = 0;

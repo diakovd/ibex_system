@@ -1,11 +1,8 @@
 
  `include "../source/defines.sv"
  `include "../source/peripherial/Timer/TmrDef.sv"
-<<<<<<< HEAD
  //`include "../source/bus_mux/ahb3lite_bus/ahb3lite_bus.sv" 
-=======
  `include "../source/bus_mux/ahb3lite_bus/ahb3lite_bus.sv" 
->>>>>>> a5fb7fa1b2e5dbb97f76ff515ded9d7d47ea5945
  // `include "defines.sv"
  // `include "TmrDef.sv"  
  import ahb3lite_pkg::*;

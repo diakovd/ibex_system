@@ -7,15 +7,14 @@
 	output TX,
 	input  RX,
 	
-//	output [31:0] LED,
-
-    input   Clk_14_7456MHz,
-    input   sys_rst_n	 
+	input  Clk125M,
+	input  Rst_n 
  );
  parameter VENDOR = "Xilinx"; //optional "Simulation"
- parameter int    MEM_SIZE  = 4 * 1024; // 4 kB
+ parameter int    MEM_SIZE  = 32 * 1024; // 4 kB
  
  logic      Clk;
+ logic 		Clk_14_7456MHz; 
  wire       Rstn;
 
  wire [31:0] LED;
@@ -28,14 +27,18 @@ if(VENDOR == "Xilinx") begin
  (
   // Clock out ports
   .clk_out1(Clk),
+  .clk_out2(Clk_14_7456MHz),
   .reset(1'b0),
-  .clk_in1(Clk_14_7456MHz)
+  .clk_in1(Clk125M)
   );
 end
 else if(VENDOR == "Simulation") begin
  
  initial Clk = 0;
- always #5000 Clk <= ~Clk; 
+ always #4000 Clk <= ~Clk; 
+
+ initial Clk_14_7456MHz = 0;
+ always #34000 Clk_14_7456MHz <= ~Clk_14_7456MHz;
 
 end
 endgenerate
@@ -47,8 +50,8 @@ endgenerate
  ibex_sys_inst(
     .TX(TX),
     .RX(RX),
-	.LED(LED),
-	.rst_sys_n(sys_rst_n),
+	//.LED(LED),
+	.rst_sys_n(Rst_n),
 	.Clk_14_7456MHz(Clk_14_7456MHz),
 	.clk_sys(Clk)
  );

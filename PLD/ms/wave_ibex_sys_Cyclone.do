@@ -8,7 +8,6 @@ add wave -noupdate -divider {New Divider}
 add wave -noupdate -divider {New Divider}
 add wave -noupdate -divider Timer
 add wave -noupdate -radix hexadecimal /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/Timer_inst/addr
-add wave -noupdate -radix hexadecimal /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/Timer_inst/CPUdat/wdata
 add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/Timer_inst/wr
 add wave -noupdate -divider UART
 add wave -noupdate -radix hexadecimal /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/UART_inst/addr
@@ -36,6 +35,10 @@ add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/data_CtrBu
 add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/data_CtrBus/rvalid
 add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/data_CtrBus/gnt
 add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/data_CtrBus/err
+add wave -noupdate -divider prefeth_Buff
+add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/u_core/if_stage_i/prefetch_buffer_i/fifo_i/instr_addr_d
+add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/u_core/if_stage_i/prefetch_buffer_i/fifo_i/instr_addr_q
+add wave -noupdate /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/u_core/if_stage_i/prefetch_buffer_i/fifo_i/in_addr_i
 add wave -noupdate -divider instr_RAM
 add wave -noupdate -radix hexadecimal /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/u_ram_instr/CPUdat/addr
 add wave -noupdate -radix hexadecimal /ibex_sys_tb/ibex_sys_cycloneIV_inst/ibex_sys_inst/u_ram_instr/CPUdat/wdata
@@ -68,7 +71,7 @@ add wave -noupdate -divider IOmodule
 add wave -noupdate /ibex_sys_tb/Rstn
 add wave -noupdate -divider UART
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {7020375 ps} 0}
+WaveRestoreCursors {{Cursor 1} {309899 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -84,4 +87,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {6951743 ps} {7243265 ps}
+WaveRestoreZoom {216741 ps} {537953 ps}

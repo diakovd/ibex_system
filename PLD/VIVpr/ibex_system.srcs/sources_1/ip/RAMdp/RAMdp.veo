@@ -1,4 +1,4 @@
-// (c) Copyright 1995-2020 Xilinx, Inc. All rights reserved.
+// (c) Copyright 1995-2022 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -57,12 +57,12 @@
 RAMdp your_instance_name (
   .clka(clka),    // input wire clka
   .wea(wea),      // input wire [3 : 0] wea
-  .addra(addra),  // input wire [9 : 0] addra
+  .addra(addra),  // input wire [12 : 0] addra
   .dina(dina),    // input wire [31 : 0] dina
   .douta(douta),  // output wire [31 : 0] douta
   .clkb(clkb),    // input wire clkb
   .web(web),      // input wire [3 : 0] web
-  .addrb(addrb),  // input wire [9 : 0] addrb
+  .addrb(addrb),  // input wire [12 : 0] addrb
   .dinb(dinb),    // input wire [31 : 0] dinb
   .doutb(doutb)  // output wire [31 : 0] doutb
 );
